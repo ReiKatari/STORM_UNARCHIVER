@@ -29,6 +29,19 @@ public class AppSettings
     public int RetryCount { get; set; } = 3;
     public int RetryDelaySec { get; set; } = 5;
 
+    // Password Dictionary & Wordlist
+    public List<string> PasswordDictionary { get; set; } = new();
+    public string PasswordDictionaryFilePath { get; set; } = "";
+    public bool EnablePasswordDictionary { get; set; } = true;
+
+    // Recursive Nested Unpack
+    public bool RecursiveUnpack { get; set; } = false;
+    public int MaxRecursionDepth { get; set; } = 3;
+
+    // I/O and CPU Throttling / Eco Mode
+    public bool LowPriorityMode { get; set; } = false;
+    public int ExtractionThrottleMs { get; set; } = 0;
+
     private static readonly string SettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "StormUnarchiver", "settings.json");

@@ -10,7 +10,7 @@
     <UseWinUI>true</UseWinUI>
     <WindowsPackageType>None</WindowsPackageType>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <AssemblyTitle>STORM UNARCHIVER</AssemblyTitle>
     <Product>STORM UNARCHIVER</Product>
     <Company>STORM</Company>

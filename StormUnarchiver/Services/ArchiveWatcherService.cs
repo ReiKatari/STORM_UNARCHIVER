@@ -15,12 +15,17 @@ public class ArchiveWatcherService : IDisposable
     private readonly Func<int> _getDelaySec;
     private readonly Func<bool> _getIncludeSubfolders;
     private readonly Func<string> _getPassword;
+    private readonly Func<IEnumerable<string>> _getPasswordDictionary;
     private readonly Func<string> _getExtensionFilter;
     private readonly Func<string> _getExcludeMask;
     private readonly Func<int> _getRetryCount;
     private readonly Func<int> _getRetryDelaySec;
-    private SemaphoreSlim _processingLock;
     private readonly Func<int> _getMaxParallel;
+    private readonly Func<bool> _getRecursiveUnpack;
+    private readonly Func<int> _getMaxRecursionDepth;
+    private readonly Func<bool> _getLowPriorityMode;
+    private readonly Func<int> _getExtractionThrottleMs;
+    private SemaphoreSlim _processingLock;
     private readonly HashSet<string> _processingFiles = new();
     private bool _isRunning;
 
@@ -36,11 +41,16 @@ public class ArchiveWatcherService : IDisposable
         Func<int> getDelaySec,
         Func<bool> getIncludeSubfolders,
         Func<string> getPassword,
+        Func<IEnumerable<string>> getPasswordDictionary,
         Func<string> getExtensionFilter,
         Func<string> getExcludeMask,
         Func<int> getRetryCount,
         Func<int> getRetryDelaySec,
         Func<int> getMaxParallel,
+        Func<bool> getRecursiveUnpack,
+        Func<int> getMaxRecursionDepth,
+        Func<bool> getLowPriorityMode,
+        Func<int> getExtractionThrottleMs,
         Action<string>? onProgress = null)
     {
         _watchFolder = watchFolder;
@@ -52,11 +62,16 @@ public class ArchiveWatcherService : IDisposable
         _getDelaySec = getDelaySec;
         _getIncludeSubfolders = getIncludeSubfolders;
         _getPassword = getPassword;
+        _getPasswordDictionary = getPasswordDictionary;
         _getExtensionFilter = getExtensionFilter;
         _getExcludeMask = getExcludeMask;
         _getRetryCount = getRetryCount;
         _getRetryDelaySec = getRetryDelaySec;
         _getMaxParallel = getMaxParallel;
+        _getRecursiveUnpack = getRecursiveUnpack;
+        _getMaxRecursionDepth = getMaxRecursionDepth;
+        _getLowPriorityMode = getLowPriorityMode;
+        _getExtractionThrottleMs = getExtractionThrottleMs;
         _onProgress = onProgress;
         _processingLock = new SemaphoreSlim(Math.Clamp(getMaxParallel(), 1, 8));
     }
@@ -210,16 +225,32 @@ public class ArchiveWatcherService : IDisposable
 
                     var preserveStructure = _getPreserveStructure();
                     var password = _getPassword();
-                    var (ok, files, error) = await Task.Run(() =>
+                    var passwordDict = _getPasswordDictionary();
+                    var recursive = _getRecursiveUnpack();
+                    var maxDepth = _getMaxRecursionDepth();
+                    var lowPriority = _getLowPriorityMode();
+                    var throttle = _getExtractionThrottleMs();
+
+                    var (ok, files, error, usedPwd) = await Task.Run(() =>
                         ArchiveExtractorService.ExtractAndMove(
                             filePath, _outputFolder,
-                            _getDeleteArchive(), preserveStructure,
-                            string.IsNullOrEmpty(password) ? null : password));
+                            deleteArchive: _getDeleteArchive(),
+                            preserveStructure: preserveStructure,
+                            primaryPassword: string.IsNullOrEmpty(password) ? null : password,
+                            passwordDictionary: passwordDict,
+                            recursiveUnpack: recursive,
+                            maxRecursionDepth: maxDepth,
+                            currentDepth: 0,
+                            lowPriorityMode: lowPriority,
+                            throttleMs: throttle,
+                            onNestedProgress: (nestedName, depthInfo) =>
+                                _onProgress?.Invoke($"Вложенный архив ({depthInfo}): {nestedName}")));
 
                     if (ok)
                     {
                         var filesStr = string.Join(", ", files);
-                        _onProcessed(fileName, true, $"→ {filesStr}");
+                        var pwdInfo = !string.IsNullOrEmpty(usedPwd) ? $" [пароль: {usedPwd}]" : "";
+                        _onProcessed(fileName, true, $"→ {filesStr}{pwdInfo}");
                         _onProgress?.Invoke("");
                         success = true;
                     }

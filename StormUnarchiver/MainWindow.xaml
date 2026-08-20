@@ -34,20 +34,22 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- App Brand Icon -->
-            <Image Grid.Column="0" Source="Assets/Square44x44Logo.png" Width="22" Height="22"
+            <!-- App Brand Icon & Distinctive Title -->
+            <Image Grid.Column="0" Source="ms-appx:///Assets/Square44x44Logo.png" Width="22" Height="22"
                    Margin="0,0,10,0" VerticalAlignment="Center" />
 
-            <TextBlock Grid.Column="1" Text="STORM UNARCHIVER"
-                       FontSize="13" FontWeight="Bold"
-                       Foreground="{StaticResource StormTextBrush}"
-                       VerticalAlignment="Center" CharacterSpacing="80" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
+                <TextBlock VerticalAlignment="Center">
+                    <Run Text="STORM" Foreground="{StaticResource StormAccentBrush}" FontWeight="Black" FontSize="14" CharacterSpacing="90" />
+                    <Run Text=" UNARCHIVER" Foreground="{StaticResource StormTextBrush}" FontWeight="Bold" FontSize="13" CharacterSpacing="50" />
+                </TextBlock>
+            </StackPanel>
 
             <Border Grid.Column="2" CornerRadius="5" Padding="6,2"
                     Background="{StaticResource StormSurfaceLighterBrush}"
-                    VerticalAlignment="Center" Margin="10,0,0,0"
-                    BorderBrush="#334CC9F0" BorderThickness="1">
-                <TextBlock Text="v0.1.0" FontSize="10" FontWeight="Bold"
+                    VerticalAlignment="Center" Margin="8,0,0,0"
+                    BorderBrush="#444CC9F0" BorderThickness="1">
+                <TextBlock Text="v0.2.0" FontSize="10" FontWeight="Bold"
                            Foreground="{StaticResource StormAccentBrush}" />
             </Border>
 
@@ -68,15 +70,18 @@
                     <FontIcon Glyph="&#xE946;" FontSize="12" Foreground="{StaticResource StormTextDimBrush}" />
                     <Button.Flyout>
                         <Flyout>
-                            <StackPanel Spacing="10" Width="280" Padding="4">
+                            <StackPanel Spacing="10" Width="290" Padding="4">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <Image Source="Assets/Square44x44Logo.png" Width="36" Height="36" />
+                                    <Image Source="ms-appx:///Assets/Square44x44Logo.png" Width="36" Height="36" />
                                     <StackPanel>
-                                        <TextBlock Text="STORM UNARCHIVER" FontWeight="Bold" FontSize="14" Foreground="{StaticResource StormTextBrush}" />
-                                        <TextBlock Text="Версия 0.1.0 • .NET 8 • WinUI 3" FontSize="11" Foreground="{StaticResource StormTextDimBrush}" />
+                                        <TextBlock FontWeight="Bold" FontSize="14">
+                                            <Run Text="STORM" Foreground="{StaticResource StormAccentBrush}" FontWeight="Black" />
+                                            <Run Text=" UNARCHIVER" Foreground="{StaticResource StormTextBrush}" />
+                                        </TextBlock>
+                                        <TextBlock Text="Версия 0.2.0 • .NET 8 • WinUI 3" FontSize="11" Foreground="{StaticResource StormTextDimBrush}" />
                                     </StackPanel>
                                 </StackPanel>
-                                <TextBlock Text="Автоматическая фоновая распаковка архивов (100+ форматов) с наблюдением за директориями в реальном времени."
+                                <TextBlock Text="Автоматическая фоновая распаковка архивов (100+ форматов) в реальном времени, словари паролей, рекурсивная распаковка и I/O throttling."
                                            TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource StormTextBrush}" />
                                 <Border Background="#10FFFFFF" CornerRadius="6" Padding="8">
                                     <StackPanel Spacing="4">
@@ -379,6 +384,20 @@
                                             <TextBlock Text="Удалять архив" />
                                         </StackPanel>
                                     </ToggleButton>
+                                    <ToggleButton x:Name="RecursiveUnpackCheckBox" Style="{StaticResource ToggleChipStyle}"
+                                                  ToolTipService.ToolTip="Рекурсивная распаковка: автоматически распаковывать вложенные архивы">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8B7;" FontSize="11" />
+                                            <TextBlock Text="Вложенные" />
+                                        </StackPanel>
+                                    </ToggleButton>
+                                    <ToggleButton x:Name="LowPriorityCheckBox" Style="{StaticResource ToggleChipStyle}"
+                                                  ToolTipService.ToolTip="Эко-режим: фоновый низкий приоритет CPU и I/O диска">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE945;" FontSize="11" />
+                                            <TextBlock Text="Эко-режим" />
+                                        </StackPanel>
+                                    </ToggleButton>
                                     <ToggleButton x:Name="AutoStartCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Запускать STORM UNARCHIVER при старте Windows">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -389,7 +408,7 @@
                                     <ToggleButton x:Name="SubfoldersCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Отслеживать архивы во всех подпапках директории">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <FontIcon Glyph="&#xE8B7;" FontSize="11" />
+                                            <FontIcon Glyph="&#xED25;" FontSize="11" />
                                             <TextBlock Text="Подпапки" />
                                         </StackPanel>
                                     </ToggleButton>
@@ -462,9 +481,9 @@
                                             <TextBlock Grid.Column="1" Text="Только" FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{StaticResource StormAccentBrush}" VerticalAlignment="Center" />
                                             <TextBox x:Name="ExtensionFilterBox" Grid.Column="2" TextChanged="ExtensionFilterBox_TextChanged"
-                                                     PlaceholderText=".zip, .rar, .7z" Height="28" FontSize="11"
-                                                     Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
-                                                     VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                                                      PlaceholderText=".zip, .rar, .7z" Height="28" FontSize="11"
+                                                      Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Stretch" />
                                             <Button Grid.Column="3" Width="28" Height="28" Padding="0"
                                                     Background="Transparent" BorderThickness="0"
                                                     ToolTipService.ToolTip="Выбрать форматы из списка">
@@ -508,9 +527,9 @@
                                             <TextBlock Grid.Column="1" Text="Исключить" FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{StaticResource StormErrorBrush}" VerticalAlignment="Center" />
                                             <TextBox x:Name="ExcludeMaskBox" Grid.Column="2" TextChanged="ExcludeMaskBox_TextChanged"
-                                                     PlaceholderText="*_part*, *.tmp" Height="28" FontSize="11"
-                                                     Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
-                                                     VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                                                      PlaceholderText="*_part*, *.tmp" Height="28" FontSize="11"
+                                                      Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Stretch" />
                                             <Button Grid.Column="3" Width="28" Height="28" Padding="0"
                                                     Background="Transparent" BorderThickness="0"
                                                     ToolTipService.ToolTip="Выбрать исключаемые форматы">
@@ -540,33 +559,65 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Password Field with Reveal Toggle -->
+                                    <!-- Password Field with Reveal Toggle & Dictionary Manager -->
                                     <Border Grid.Column="2" CornerRadius="8" Padding="10,5"
                                             Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1">
-                                        <Grid ColumnSpacing="8">
+                                        <Grid ColumnSpacing="6">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <FontIcon Glyph="&#xE8D7;" FontSize="12" Foreground="{StaticResource StormWarningBrush}" VerticalAlignment="Center" />
                                             <TextBlock Grid.Column="1" Text="Пароль" FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{StaticResource StormWarningBrush}" VerticalAlignment="Center" />
                                             <PasswordBox x:Name="PasswordBox" Grid.Column="2"
-                                                         PlaceholderText="для архивов" Height="28" FontSize="11"
-                                                         Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
-                                                         VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                                                          PlaceholderText="для архивов" Height="28" FontSize="11"
+                                                          Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
+                                                          VerticalAlignment="Center" HorizontalAlignment="Stretch" />
                                             <TextBox x:Name="PasswordPlainBox" Grid.Column="2" Visibility="Collapsed"
-                                                     PlaceholderText="для архивов" Height="28" FontSize="11"
-                                                     Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
-                                                     VerticalAlignment="Center" HorizontalAlignment="Stretch" />
-                                            <ToggleButton x:Name="RevealPasswordButton" Grid.Column="3" Width="28" Height="28" Padding="0"
+                                                      PlaceholderText="для архивов" Height="28" FontSize="11"
+                                                      Padding="8,4" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                                            <ToggleButton x:Name="RevealPasswordButton" Grid.Column="3" Width="26" Height="26" Padding="0"
                                                           Background="Transparent" BorderThickness="0"
                                                           Click="RevealPassword_Click"
                                                           ToolTipService.ToolTip="Показать / скрыть пароль">
                                                 <FontIcon x:Name="RevealPasswordIcon" Glyph="&#xE7B3;" FontSize="12" Foreground="{StaticResource StormTextDimBrush}" />
                                             </ToggleButton>
+
+                                            <!-- Password Dictionary Manager Button -->
+                                            <Button Grid.Column="4" Width="26" Height="26" Padding="0"
+                                                    Background="#15FBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="5"
+                                                    ToolTipService.ToolTip="Менеджер словарей паролей (автоматический подбор)">
+                                                <FontIcon Glyph="&#xE8D7;" FontSize="11" Foreground="{StaticResource StormWarningBrush}" />
+                                                <Button.Flyout>
+                                                    <Flyout>
+                                                        <StackPanel Spacing="10" Width="300" Padding="4">
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <FontIcon Glyph="&#xE8D7;" FontSize="16" Foreground="{StaticResource StormWarningBrush}" />
+                                                                <StackPanel>
+                                                                    <TextBlock Text="Словарь паролей" FontWeight="Bold" FontSize="13" Foreground="{StaticResource StormTextBrush}" />
+                                                                    <TextBlock Text="Автоподбор для защищенных архивов" FontSize="10" Foreground="{StaticResource StormTextDimBrush}" />
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                            <TextBlock Text="Введите список паролей (по одному в строке). При распаковке зашифрованных архивов STORM автоматически переберет их:"
+                                                                       FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource StormTextBrush}" />
+                                                            <TextBox x:Name="PasswordDictionaryBox" Height="100" AcceptsReturn="True"
+                                                                     PlaceholderText="123456&#x0a;password&#x0a;secret&#x0a;admin"
+                                                                     FontSize="11" FontFamily="Cascadia Code,Consolas"
+                                                                     TextWrapping="Wrap" />
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <Button Content="Выбрать .txt файл" FontSize="11" Click="PickPasswordFile_Click" Style="{StaticResource AccentButtonStyle}" Padding="10,4" />
+                                                                <Button Content="Очистить" FontSize="11" Click="ClearPasswordDict_Click" Padding="10,4" />
+                                                            </StackPanel>
+                                                            <TextBlock x:Name="PasswordDictStatusText" FontSize="10" Foreground="{StaticResource StormAccentBrush}" TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+                                                    </Flyout>
+                                                </Button.Flyout>
+                                            </Button>
                                         </Grid>
                                     </Border>
                                 </Grid>

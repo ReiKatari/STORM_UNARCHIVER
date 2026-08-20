@@ -112,16 +112,28 @@ public class ArchiveExtractorService
 
     /// <summary>
     /// Extracts archive, renames files to match archive name, moves to output folder.
-    /// Returns (success, extractedFiles, errorMessage).
+    /// Supports password dictionary fallback, nested archive recursive extraction, and I/O throttling.
+    /// Returns (success, extractedFiles, errorMessage, successfulPassword).
     /// </summary>
-    public static (bool Success, List<string> Files, string? Error) ExtractAndMove(
+    public static (bool Success, List<string> Files, string? Error, string? UsedPassword) ExtractAndMove(
         string archivePath, string outputFolder, bool deleteArchive = true,
-        bool preserveStructure = false, string? password = null)
+        bool preserveStructure = false, string? primaryPassword = null,
+        IEnumerable<string>? passwordDictionary = null,
+        bool recursiveUnpack = false, int maxRecursionDepth = 3, int currentDepth = 0,
+        bool lowPriorityMode = false, int throttleMs = 0,
+        Action<string, string>? onNestedProgress = null)
     {
         var extractedFiles = new List<string>();
         var archiveDir = Path.GetDirectoryName(archivePath)!;
         var archiveName = GetArchiveBaseName(archivePath);
         var tempExtractDir = Path.Combine(archiveDir, $"_storm_temp_{Guid.NewGuid():N}");
+        string? successfulPassword = null;
+
+        var originalPriority = Thread.CurrentThread.Priority;
+        if (lowPriorityMode)
+        {
+            try { Thread.CurrentThread.Priority = ThreadPriority.Lowest; } catch { }
+        }
 
         try
         {
@@ -132,24 +144,71 @@ public class ArchiveExtractorService
             // Wait for file to be fully written
             WaitForFile(archivePath, TimeSpan.FromSeconds(30));
 
-            // Open with optional password
-            var readerOptions = new SharpCompress.Readers.ReaderOptions();
-            if (!string.IsNullOrEmpty(password))
-                readerOptions.Password = password;
-
-            // Extract archive to temp directory — explicit using block to release file handle
-            using (var archive = ArchiveFactory.Open(archivePath, readerOptions))
+            // Build candidate password list: primary -> dictionary -> empty
+            var candidatePasswords = new List<string?> { primaryPassword };
+            if (passwordDictionary != null)
             {
-                foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
+                foreach (var p in passwordDictionary)
                 {
-                    entry.WriteToDirectory(tempExtractDir, new ExtractionOptions
-                    {
-                        ExtractFullPath = preserveStructure,
-                        Overwrite = true
-                    });
+                    if (!string.IsNullOrWhiteSpace(p) && !candidatePasswords.Contains(p))
+                        candidatePasswords.Add(p);
                 }
             }
-            // Archive file handle is now released
+            if (!candidatePasswords.Contains(null) && !candidatePasswords.Contains(""))
+                candidatePasswords.Add(null); // Try without password as fallback
+
+            bool extractSuccess = false;
+            Exception? lastEx = null;
+
+            foreach (var candidate in candidatePasswords)
+            {
+                try
+                {
+                    var readerOptions = new SharpCompress.Readers.ReaderOptions();
+                    if (!string.IsNullOrEmpty(candidate))
+                        readerOptions.Password = candidate;
+
+                    using (var archive = ArchiveFactory.Open(archivePath, readerOptions))
+                    {
+                        foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
+                        {
+                            entry.WriteToDirectory(tempExtractDir, new ExtractionOptions
+                            {
+                                ExtractFullPath = preserveStructure,
+                                Overwrite = true
+                            });
+
+                            if (throttleMs > 0)
+                            {
+                                Thread.Sleep(throttleMs);
+                            }
+                        }
+                    }
+
+                    extractSuccess = true;
+                    successfulPassword = candidate;
+                    break; // Succeeded!
+                }
+                catch (CryptographicException ex)
+                {
+                    lastEx = ex;
+                    // Clean up partial files from temp directory before next try
+                    CleanDirectoryContents(tempExtractDir);
+                }
+                catch (Exception ex) when (ex.Message.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+                                          ex.Message.Contains("encrypted", StringComparison.OrdinalIgnoreCase) ||
+                                          ex.Message.Contains("header", StringComparison.OrdinalIgnoreCase) ||
+                                          ex.Message.Contains("checksum", StringComparison.OrdinalIgnoreCase))
+                {
+                    lastEx = ex;
+                    CleanDirectoryContents(tempExtractDir);
+                }
+            }
+
+            if (!extractSuccess)
+            {
+                throw lastEx ?? new InvalidOperationException("Не удалось распаковать архив (неверный пароль или поврежденный файл)");
+            }
 
             // Get extracted files (recursively if structure was preserved)
             var files = Directory.GetFiles(tempExtractDir,
@@ -157,8 +216,10 @@ public class ArchiveExtractorService
 
             if (files.Length == 0)
             {
-                return (false, extractedFiles, "Архив пуст");
+                return (false, extractedFiles, "Архив пуст", successfulPassword);
             }
+
+            string finalOutputDir = outputFolder;
 
             if (files.Length == 1 && !preserveStructure)
             {
@@ -168,9 +229,7 @@ public class ArchiveExtractorService
                 var destName = archiveName + ext;
                 var destPath = Path.Combine(outputFolder, destName);
 
-                // Overwrite if file already exists
-                if (File.Exists(destPath))
-                    File.Delete(destPath);
+                if (File.Exists(destPath)) File.Delete(destPath);
                 File.Move(file, destPath);
                 extractedFiles.Add(Path.GetFileName(destPath));
             }
@@ -179,42 +238,79 @@ public class ArchiveExtractorService
                 // Multiple files or preserveStructure — create subfolder with archive name
                 var subFolder = Path.Combine(outputFolder, archiveName);
                 Directory.CreateDirectory(subFolder);
+                finalOutputDir = subFolder;
 
                 foreach (var file in files)
                 {
-                    // Compute relative path from temp dir to preserve structure
                     var relativePath = preserveStructure
                         ? Path.GetRelativePath(tempExtractDir, file)
                         : Path.GetFileName(file);
 
                     var destPath = Path.Combine(subFolder, relativePath);
-
-                    // Ensure subdirectory exists
                     var destDir = Path.GetDirectoryName(destPath);
                     if (destDir != null) Directory.CreateDirectory(destDir);
 
-                    // Overwrite if file already exists
-                    if (File.Exists(destPath))
-                        File.Delete(destPath);
+                    if (File.Exists(destPath)) File.Delete(destPath);
                     File.Move(file, destPath);
                     extractedFiles.Add(relativePath);
                 }
             }
 
-            // Delete the original archive (permanently, bypassing recycle bin)
+            // Delete original archive if configured
             if (deleteArchive)
             {
                 try { File.Delete(archivePath); } catch { /* ignore */ }
             }
 
-            return (true, extractedFiles, null);
+            // === RECURSIVE UNPACKING OF NESTED ARCHIVES ===
+            if (recursiveUnpack && currentDepth < maxRecursionDepth)
+            {
+                var targetScanDir = (files.Length == 1 && !preserveStructure) ? outputFolder : finalOutputDir;
+                var potentialNested = Directory.GetFiles(targetScanDir, "*", SearchOption.AllDirectories)
+                    .Where(f => IsArchive(f) && !string.Equals(f, archivePath, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                foreach (var nestedArchive in potentialNested)
+                {
+                    var nestedDir = Path.GetDirectoryName(nestedArchive)!;
+                    onNestedProgress?.Invoke(Path.GetFileName(nestedArchive), $"Глубина {currentDepth + 1}");
+
+                    var (nestedOk, nestedFiles, nestedErr, nestedPwd) = ExtractAndMove(
+                        nestedArchive, nestedDir,
+                        deleteArchive: deleteArchive,
+                        preserveStructure: preserveStructure,
+                        primaryPassword: primaryPassword,
+                        passwordDictionary: passwordDictionary,
+                        recursiveUnpack: true,
+                        maxRecursionDepth: maxRecursionDepth,
+                        currentDepth: currentDepth + 1,
+                        lowPriorityMode: lowPriorityMode,
+                        throttleMs: throttleMs,
+                        onNestedProgress: onNestedProgress);
+
+                    if (nestedOk)
+                    {
+                        foreach (var nf in nestedFiles)
+                        {
+                            extractedFiles.Add($"↳ {nf}");
+                        }
+                    }
+                }
+            }
+
+            return (true, extractedFiles, null, successfulPassword);
         }
         catch (Exception ex)
         {
-            return (false, extractedFiles, ex.Message);
+            return (false, extractedFiles, ex.Message, successfulPassword);
         }
         finally
         {
+            if (lowPriorityMode)
+            {
+                try { Thread.CurrentThread.Priority = originalPriority; } catch { }
+            }
+
             // Clean up temp directory
             try
             {
@@ -223,6 +319,19 @@ public class ArchiveExtractorService
             }
             catch { /* ignore cleanup errors */ }
         }
+    }
+
+    private static void CleanDirectoryContents(string dir)
+    {
+        try
+        {
+            if (!Directory.Exists(dir)) return;
+            foreach (var f in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+                try { File.Delete(f); } catch { }
+            foreach (var d in Directory.GetDirectories(dir))
+                try { Directory.Delete(d, true); } catch { }
+        }
+        catch { }
     }
 
     private static string GetArchiveBaseName(string path)
