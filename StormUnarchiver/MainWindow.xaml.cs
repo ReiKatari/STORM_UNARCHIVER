@@ -158,10 +158,34 @@ public sealed partial class MainWindow : Window
             if (GetComboTag(RetryComboBox) is int v) { _settings.RetryCount = v; _settings.Save(); }
         };
 
+        // Recursive unpack checkbox
+        RecursiveUnpackCheckBox.IsChecked = _settings.RecursiveUnpack;
+        RecursiveUnpackCheckBox.Checked += (_, _) => { _settings.RecursiveUnpack = true; _settings.Save(); };
+        RecursiveUnpackCheckBox.Unchecked += (_, _) => { _settings.RecursiveUnpack = false; _settings.Save(); };
+
+        // Low priority / Eco mode checkbox
+        LowPriorityCheckBox.IsChecked = _settings.LowPriorityMode;
+        LowPriorityCheckBox.Checked += (_, _) => { _settings.LowPriorityMode = true; _settings.Save(); };
+        LowPriorityCheckBox.Unchecked += (_, _) => { _settings.LowPriorityMode = false; _settings.Save(); };
+
+        // Password Dictionary box
+        PasswordDictionaryBox.Text = string.Join(Environment.NewLine, _settings.PasswordDictionary);
+        PasswordDictionaryBox.TextChanged += (_, _) =>
+        {
+            var lines = PasswordDictionaryBox.Text
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct()
+                .ToList();
+            _settings.PasswordDictionary = lines;
+            _settings.Save();
+            UpdatePasswordDictStatus();
+        };
+        UpdatePasswordDictStatus();
+
         // Close handling
         this.Closed += MainWindow_Closed;
 
-        AddLog(LogLevel.Info, "STORM UNARCHIVER 0.1.0 запущен и готов к работе");
+        AddLog(LogLevel.Info, "STORM UNARCHIVER 0.2.0 запущен и готов к работе");
     }
 
     // ===== WINDOW MANAGEMENT =====
@@ -471,11 +495,16 @@ public sealed partial class MainWindow : Window
                     getDelaySec: () => _settings.ProcessingDelaySec,
                     getIncludeSubfolders: () => _settings.IncludeSubfolders,
                     getPassword: () => _settings.ArchivePassword,
+                    getPasswordDictionary: GetCandidatePasswords,
                     getExtensionFilter: () => _settings.ExtensionFilter,
                     getExcludeMask: () => _settings.ExcludeMask,
                     getRetryCount: () => _settings.RetryCount,
                     getRetryDelaySec: () => _settings.RetryDelaySec,
                     getMaxParallel: () => _settings.MaxParallelExtractions,
+                    getRecursiveUnpack: () => _settings.RecursiveUnpack,
+                    getMaxRecursionDepth: () => _settings.MaxRecursionDepth,
+                    getLowPriorityMode: () => _settings.LowPriorityMode,
+                    getExtractionThrottleMs: () => _settings.ExtractionThrottleMs,
                     onProgress: (msg) => DispatcherQueue.TryEnqueue(() =>
                     {
                         ProgressStatusText.Text = msg;
@@ -505,6 +534,86 @@ public sealed partial class MainWindow : Window
             AnimateStatusPulse();
             _trayIcon.SetMonitoringState(Helpers.TrayState.Active);
         }
+    }
+
+    // ===== PASSWORD DICTIONARY & HELPERS =====
+
+    private IEnumerable<string> GetCandidatePasswords()
+    {
+        var list = new HashSet<string>(StringComparer.Ordinal);
+        if (!string.IsNullOrWhiteSpace(_settings.ArchivePassword))
+            list.Add(_settings.ArchivePassword);
+
+        if (_settings.EnablePasswordDictionary)
+        {
+            foreach (var p in _settings.PasswordDictionary)
+            {
+                if (!string.IsNullOrWhiteSpace(p)) list.Add(p.Trim());
+            }
+
+            if (!string.IsNullOrWhiteSpace(_settings.PasswordDictionaryFilePath) && File.Exists(_settings.PasswordDictionaryFilePath))
+            {
+                try
+                {
+                    foreach (var line in File.ReadLines(_settings.PasswordDictionaryFilePath).Take(500))
+                    {
+                        if (!string.IsNullOrWhiteSpace(line)) list.Add(line.Trim());
+                    }
+                }
+                catch { }
+            }
+        }
+        return list;
+    }
+
+    private async void PickPasswordFile_Click(object sender, RoutedEventArgs e)
+    {
+        var picker = new FileOpenPicker();
+        picker.SuggestedStartLocation = PickerLocationId.Desktop;
+        picker.FileTypeFilter.Add(".txt");
+        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
+        var file = await picker.PickSingleFileAsync();
+        if (file != null)
+        {
+            _settings.PasswordDictionaryFilePath = file.Path;
+            try
+            {
+                var lines = await FileIO.ReadLinesAsync(file);
+                var count = 0;
+                foreach (var l in lines)
+                {
+                    if (!string.IsNullOrWhiteSpace(l) && !_settings.PasswordDictionary.Contains(l.Trim()))
+                    {
+                        _settings.PasswordDictionary.Add(l.Trim());
+                        count++;
+                    }
+                }
+                PasswordDictionaryBox.Text = string.Join(Environment.NewLine, _settings.PasswordDictionary);
+                _settings.Save();
+                UpdatePasswordDictStatus();
+                AddLog(LogLevel.Success, $"Загружен словарь паролей ({count} новых): {file.Name}");
+            }
+            catch (Exception ex)
+            {
+                AddLog(LogLevel.Error, $"Ошибка чтения словаря: {ex.Message}");
+            }
+        }
+    }
+
+    private void ClearPasswordDict_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.PasswordDictionary.Clear();
+        _settings.PasswordDictionaryFilePath = "";
+        _settings.Save();
+        PasswordDictionaryBox.Text = "";
+        UpdatePasswordDictStatus();
+        AddLog(LogLevel.Info, "Словарь паролей очищен");
+    }
+
+    private void UpdatePasswordDictStatus()
+    {
+        var count = _settings.PasswordDictionary.Count;
+        PasswordDictStatusText.Text = count > 0 ? $"В словаре: {count} паролей" : "Словарь пуст";
     }
 
     private void StopAllMonitoring()
