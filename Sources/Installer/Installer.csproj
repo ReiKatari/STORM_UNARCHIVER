@@ -16,6 +16,7 @@
   <ItemGroup>
     <EmbeddedResource Include="payload.zip" Condition="Exists('payload.zip')" />
     <EmbeddedResource Include="Assets\app.ico" />
+    <EmbeddedResource Include="Assets\app.png" />
     <EmbeddedResource Include="Assets\Square44x44Logo.png" />
     <EmbeddedResource Include="Assets\Square150x150Logo.png" />
   </ItemGroup>
