@@ -35,7 +35,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- App Brand Icon & Distinctive Title -->
-            <Image Grid.Column="0" Source="ms-appx:///Assets/Square44x44Logo.png" Width="22" Height="22"
+            <Image Grid.Column="0" Source="Assets/Square44x44Logo.png" Width="22" Height="22"
                    Margin="0,0,10,0" VerticalAlignment="Center" />
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
@@ -72,7 +72,7 @@
                         <Flyout>
                             <StackPanel Spacing="10" Width="290" Padding="4">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <Image Source="ms-appx:///Assets/Square44x44Logo.png" Width="36" Height="36" />
+                                    <Image Source="Assets/Square44x44Logo.png" Width="36" Height="36" />
                                     <StackPanel>
                                         <TextBlock FontWeight="Bold" FontSize="14">
                                             <Run Text="STORM" Foreground="{StaticResource StormAccentBrush}" FontWeight="Black" />
@@ -606,7 +606,7 @@
                                                             <TextBlock Text="Введите список паролей (по одному в строке). При распаковке зашифрованных архивов STORM автоматически переберет их:"
                                                                        FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource StormTextBrush}" />
                                                             <TextBox x:Name="PasswordDictionaryBox" Height="100" AcceptsReturn="True"
-                                                                     PlaceholderText="123456&#x0a;password&#x0a;secret&#x0a;admin"
+                                                                     PlaceholderText="123456, password, secret, admin..."
                                                                      FontSize="11" FontFamily="Cascadia Code,Consolas"
                                                                      TextWrapping="Wrap" />
                                                             <StackPanel Orientation="Horizontal" Spacing="8">
