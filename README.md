@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="StormUnarchiver/Assets/app.png" alt="STORM UNARCHIVER Logo" width="160" height="160" style="border-radius: 28px; box-shadow: 0 12px 40px rgba(76, 201, 240, 0.35);" />
+  <img src="Assets/app.png" alt="STORM UNARCHIVER Logo" width="160" height="160" style="border-radius: 28px; box-shadow: 0 12px 40px rgba(76, 201, 240, 0.35);" />
 </p>
 
 <h1 align="center">
   <span style="color:#4CC9F0; font-weight:900;">STORM</span> UNARCHIVER
   <br/>
-  <sub style="font-size:16px; font-weight:normal; opacity:0.8;">v0.2.0 • High-Performance Real-Time Archive Automation for Windows</sub>
+  <sub style="font-size:16px; font-weight:normal; opacity:0.8;">High-Performance Real-Time Archive Automation for Windows</sub>
 </h1>
 
 <p align="center">
-  <strong>Мощный, легковесный и автоматический инструмент распаковки архивов в реальном времени для Windows.</strong>
+  <strong>Мощный, легковесный и полностью автоматический инструмент распаковки архивов в реальном времени для Windows.</strong>
 </p>
 
 <p align="center">
@@ -17,7 +17,6 @@
   <a href="https://learn.microsoft.com/en-us/windows/apps/winui/winui3/"><img src="https://img.shields.io/badge/UI-WinUI%203%20%2F%20Windows%20App%20SDK-0078D4?style=for-the-badge&logo=windows11" alt="WinUI 3" /></a>
   <a href="https://www.microsoft.com/windows"><img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-00A4EF?style=for-the-badge&logo=windows" alt="Windows 10/11" /></a>
   <img src="https://img.shields.io/badge/Formats-100%2B%20Supported-4ADE80?style=for-the-badge" alt="100+ Formats" />
-  <img src="https://img.shields.io/badge/Version-v0.2.0-4CC9F0?style=for-the-badge" alt="v0.2.0" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-FBBF24?style=for-the-badge" alt="License MIT" /></a>
 </p>
 
@@ -35,14 +34,14 @@
 
 ### ⚡ Производительность и фоновый мониторинг
 - 📂 **Мульти-парный мониторинг каталогов**: Добавляйте любое количество пар папок «*Откуда* ➔ *Куда*» с независимым контролем и перетаскиванием (Drag & Drop).
-- ⚡ **Многопоточная параллельная обработка**: Настраиваемое количество параллельных потоков распаковки (до 4+ потоков) для мгновенной обработки очередей.
+- ⚡ **Многопоточная параллельная обработка**: Настраиваемое количество параллельных потоков распаковки для мгновенной обработки очередей.
 - 🛡️ **Защита от частичной записи (Smart File Lock Check)**: Ожидание полного завершения загрузки или копирования файла перед распаковкой.
 - 🔄 **Автоповторы при сбоях (Retry Mechanism)**: Настраиваемое количество попыток распаковки с задержкой при временной блокировке файла.
-- 🍃 **Эко-режим и I/O Throttling (CPU & SSD Protection)**: Фоновый режим с пониженным приоритетом потоков ввода-вывода, предотвращающий перегрев SSD и лаги в играх/тяжелых приложениях.
+- 🍃 **Эко-режим и I/O Throttling (CPU & SSD Protection)**: Фоновый режим с пониженным приоритетом потоков ввода-вывода, предотвращающий перегрузку накопителя и фризы в играх/тяжелых приложениях.
 
 ### 🔑 Словари паролей и шифрование
 - 🔐 **Менеджер словарей паролей (Password Dictionary / Brute-force Fallback)**:
-  - Хранение списка доверенных и популярных паролей.
+  - Хранение списка доверенных и часто используемых паролей.
   - Поддержка импорта внешних текстовых словарей (`.txt` wordlist) в один клик.
   - Автоматический перебор паролей при встрече защищенного архива с отображением подобранного ключа в журнале.
   - Переключатель отображения/скрытия основного пароля в интерфейсе.
@@ -98,13 +97,11 @@
 2. [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 3. Visual Studio 2022 (с компонентом *Разработка приложений для Windows*) или VS Code с C# Dev Kit
 
-### Сборка из исходников
-
 ### 📁 Структура проекта
 
 - **`Sources\`** — Полные исходные коды приложения (`StormUnarchiver`) и установщика (`Installer`).
-- **`Assembling\`** — Готовая скомпилированная программа, готовая к запуску (`StormUnarchiver.exe`).
-- **`Files\`** — Автономные установщики программы (`STORM_UNARCHIVER_v{версия}_Setup.exe`) с сохранением всех версий.
+- **`Assembling\`** — Готовая скомпилированная автономная программа, готовая к запуску (`StormUnarchiver.exe`).
+- **`Files\`** — Автономные установщики программы (`STORM_UNARCHIVER_v*_Setup.exe`) с сохранением всех версий.
 
 ### 🔨 Автоматическая сборка релиза и установщика
 
@@ -114,7 +111,7 @@
 ```
 Скрипт автоматически:
 1. Скомпилирует и обновит готовую программу в каталоге `Assembling\`.
-2. Соберет единый установщик `.exe` в каталоге `Files\` с ярлыками на Рабочем столе, меню «Пуск» и записями в реестре.
+2. Соберет единый подписанный установщик `.exe` в каталоге `Files\` с ярлыками на Рабочем столе, меню «Пуск» и записями в реестре.
 3. Сохранит все предыдущие версии инсталляторов в папке `Files\`.
 
 ### Ручная сборка и запуск
@@ -123,8 +120,8 @@
 # Запустить приложение из исходников
 dotnet run --project Sources/StormUnarchiver/StormUnarchiver.csproj
 
-# Собрать релиз в папку Assembling
-dotnet publish Sources/StormUnarchiver/StormUnarchiver.csproj -c Release -r win-x64 --self-contained false -o Assembling
+# Собрать автономный релиз в папку Assembling
+dotnet publish Sources/StormUnarchiver/StormUnarchiver.csproj -c Release -r win-x64 --self-contained true -o Assembling
 ```
 
 ---
