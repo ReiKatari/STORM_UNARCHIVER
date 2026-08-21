@@ -100,22 +100,31 @@
 
 ### Сборка из исходников
 
-```bash
-# Клонировать репозиторий
-git clone https://github.com/ReiKatari/STORM_UNARCHIVER.git
-cd STORM_UNARCHIVER
+### 📁 Структура проекта
 
-# Собрать проект
-dotnet build StormUnarchiver/StormUnarchiver.csproj -c Release
+- **`Sources\`** — Полные исходные коды приложения (`StormUnarchiver`) и установщика (`Installer`).
+- **`Assembling\`** — Готовая скомпилированная программа, готовая к запуску (`StormUnarchiver.exe`).
+- **`Files\`** — Автономные установщики программы (`STORM_UNARCHIVER_v{версия}_Setup.exe`) с сохранением всех версий.
 
-# Запустить приложение
-dotnet run --project StormUnarchiver/StormUnarchiver.csproj
+### 🔨 Автоматическая сборка релиза и установщика
+
+Запустите скрипт `Build_Release.bat` или выполните команду:
+```powershell
+.\Build_Release.ps1
 ```
+Скрипт автоматически:
+1. Скомпилирует и обновит готовую программу в каталоге `Assembling\`.
+2. Соберет единый установщик `.exe` в каталоге `Files\` с ярлыками на Рабочем столе, меню «Пуск» и записями в реестре.
+3. Сохранит все предыдущие версии инсталляторов в папке `Files\`.
 
-### Публикация автономного (Self-Contained) бинарника
+### Ручная сборка и запуск
 
 ```bash
-dotnet publish StormUnarchiver/StormUnarchiver.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+# Запустить приложение из исходников
+dotnet run --project Sources/StormUnarchiver/StormUnarchiver.csproj
+
+# Собрать релиз в папку Assembling
+dotnet publish Sources/StormUnarchiver/StormUnarchiver.csproj -c Release -r win-x64 --self-contained false -o Assembling
 ```
 
 ---

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Version>0.2.0</Version>
+    <AssemblyTitle>STORM UNARCHIVER Setup</AssemblyTitle>
+    <Product>STORM UNARCHIVER Setup</Product>
+    <Company>STORM</Company>
+    <Description>Установщик STORM UNARCHIVER</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="payload.zip" Condition="Exists('payload.zip')" />
+    <EmbeddedResource Include="Assets\app.ico" />
+    <EmbeddedResource Include="Assets\Square44x44Logo.png" />
+    <EmbeddedResource Include="Assets\Square150x150Logo.png" />
+  </ItemGroup>
+</Project>
