@@ -8,6 +8,7 @@
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
@@ -18,7 +19,6 @@
     <Description>Профессиональный инструмент для автоматической распаковки архивов</Description>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets\**">
@@ -31,4 +31,9 @@
     <PackageReference Include="SharpCompress" Version="0.38.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
+
+  <Target Name="CopyPriToResourcesPri" AfterTargets="Build;Publish">
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).pri" DestinationFiles="$(TargetDir)resources.pri" Condition="Exists('$(TargetDir)$(AssemblyName).pri')" ContinueOnError="true" />
+    <Copy SourceFiles="$(PublishDir)$(AssemblyName).pri" DestinationFiles="$(PublishDir)resources.pri" Condition="Exists('$(PublishDir)$(AssemblyName).pri')" ContinueOnError="true" />
+  </Target>
 </Project>

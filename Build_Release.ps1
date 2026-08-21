@@ -46,10 +46,16 @@ Write-Host "[2/5] Project Version: v$version" -ForegroundColor Green
 
 # 4. Publish application to Assembling (Self-Contained)
 Write-Host "[3/5] Publishing StormUnarchiver to Assembling (Self-Contained)..." -ForegroundColor Yellow
+Stop-Process -Name StormUnarchiver -Force -ErrorAction SilentlyContinue
 dotnet publish $AppProjPath -c $Configuration -r win-x64 --self-contained true -o $AssemblingDir --nologo
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Error compiling application!" -ForegroundColor Red
     exit 1
+}
+
+# Ensure resources.pri exists for WinUI 3 resource loader
+if (Test-Path "$AssemblingDir\StormUnarchiver.pri") {
+    Copy-Item "$AssemblingDir\StormUnarchiver.pri" "$AssemblingDir\resources.pri" -Force
 }
 
 # Unblock and digitally sign Assembling binaries
