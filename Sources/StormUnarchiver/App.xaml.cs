@@ -12,33 +12,6 @@ public partial class App : Application
     [DllImport("user32.dll", EntryPoint = "MessageBoxW", CharSet = CharSet.Unicode)]
     private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
 
-    [DllImport("Microsoft.ui.xaml.dll")]
-    private static extern void XamlCheckProcessRequirements();
-
-    [STAThread]
-    static void Main(string[] args)
-    {
-        try
-        {
-            XamlCheckProcessRequirements();
-            WinRT.ComWrappersSupport.InitializeComWrappers();
-            Application.Start((p) =>
-            {
-                var context = new Microsoft.UI.Dispatching.DispatcherQueueSynchronizationContext(
-                    Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
-                System.Threading.SynchronizationContext.SetSynchronizationContext(context);
-                new App();
-            });
-        }
-        catch (Exception ex)
-        {
-            var logPath = Path.Combine(AppContext.BaseDirectory, "crash.log");
-            File.WriteAllText(logPath, $"{DateTime.Now}: FATAL MAIN: {ex}\n");
-            MessageBox(IntPtr.Zero, $"FATAL ERROR:\n\n{ex}", "STORM UNARCHIVER Fatal Error", 0x10);
-            throw;
-        }
-    }
-
     public App()
     {
         this.InitializeComponent();
