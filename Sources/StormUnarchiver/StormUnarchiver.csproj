@@ -13,10 +13,10 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <Version>0.2.0</Version>
-    <AssemblyTitle>STORM UNARCHIVER</AssemblyTitle>
-    <Product>STORM UNARCHIVER</Product>
-    <Company>STORM</Company>
-    <Description>Профессиональный инструмент для автоматической распаковки архивов</Description>
+    <AssemblyTitle>STORM UNARCHIVER 0.2.0</AssemblyTitle>
+    <Product>STORM UNARCHIVER 0.2.0</Product>
+    <Company>STORM TEAM</Company>
+    <Description>STORM UNARCHIVER 0.2.0</Description>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

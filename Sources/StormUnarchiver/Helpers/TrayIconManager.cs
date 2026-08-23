@@ -84,7 +84,7 @@ public class TrayIconManager : IDisposable
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             uCallbackMessage = WM_TRAYICON,
             hIcon = _hIcon,
-            szTip = "STORM UNARCHIVER"
+            szTip = "STORM UNARCHIVER 0.2.0"
         };
         Shell_NotifyIconW(NIM_ADD, ref nid);
         _iconAdded = true;
@@ -117,9 +117,9 @@ public class TrayIconManager : IDisposable
         var newIcon = CreateStormIcon(state);
         var tip = state switch
         {
-            TrayState.Active => "STORM UNARCHIVER — Мониторинг...",
-            TrayState.Error => "STORM UNARCHIVER — Ошибка!",
-            _ => "STORM UNARCHIVER — Ожидание"
+            TrayState.Active => "STORM UNARCHIVER 0.2.0 — Мониторинг...",
+            TrayState.Error => "STORM UNARCHIVER 0.2.0 — Ошибка!",
+            _ => "STORM UNARCHIVER 0.2.0 — Ожидание"
         };
 
         var nid = new NOTIFYICONDATA

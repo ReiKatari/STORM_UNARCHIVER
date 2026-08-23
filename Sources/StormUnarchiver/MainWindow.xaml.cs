@@ -40,7 +40,7 @@ public sealed partial class MainWindow : Window
         this.InitializeComponent();
 
         // Window setup
-        Title = "STORM UNARCHIVER";
+        Title = "STORM UNARCHIVER 0.2.0";
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         SetWindowSize(880, 900);

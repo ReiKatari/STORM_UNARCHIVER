@@ -21,9 +21,9 @@ if (-not (Test-Path $FilesDir)) { New-Item -ItemType Directory -Path $FilesDir -
 
 # 2. Get / Create Code Signing Certificate
 Write-Host "[1/5] Checking Code Signing certificate..." -ForegroundColor Yellow
-$cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM UNARCHIVER*" } | Select-Object -First 1
+$cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*CN=STORM TEAM*" } | Select-Object -First 1
 if (-not $cert) {
-    $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=STORM UNARCHIVER, O=STORM" -CertStoreLocation "Cert:\CurrentUser\My" -NotAfter (Get-Date).AddYears(10)
+    $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=STORM TEAM, O=STORM TEAM" -CertStoreLocation "Cert:\CurrentUser\My" -NotAfter (Get-Date).AddYears(10)
     $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root", "CurrentUser")
     $rootStore.Open("ReadWrite")
     $rootStore.Add($cert)

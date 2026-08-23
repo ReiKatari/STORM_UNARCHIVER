@@ -33,7 +33,7 @@ public class InstallerForm : Form
 
     private void InitializeUI()
     {
-        this.Text = $"{Program.AppName} v{Program.Version} — Установка";
+        this.Text = $"{Program.AppName} — Установка";
         this.Size = new Size(620, 530);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -428,7 +428,7 @@ public class InstallerForm : Form
     {
         try
         {
-            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\STORM UNARCHIVER");
+            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Windows\CurrentVersion\Uninstall\{Program.AppName}");
             if (key != null)
             {
                 key.SetValue("DisplayName", Program.AppName);
