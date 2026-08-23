@@ -33,7 +33,7 @@ public class InstallerForm : Form
 
     private void InitializeUI()
     {
-        this.Text = $"{Program.AppName} — Установка";
+        this.Text = $"{Program.AppDisplayName} — Установка";
         this.Size = new Size(620, 530);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -431,7 +431,7 @@ public class InstallerForm : Form
             using var key = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Windows\CurrentVersion\Uninstall\{Program.AppName}");
             if (key != null)
             {
-                key.SetValue("DisplayName", Program.AppName);
+                key.SetValue("DisplayName", Program.AppDisplayName);
                 key.SetValue("DisplayVersion", Program.Version);
                 key.SetValue("Publisher", Program.Publisher);
                 key.SetValue("DisplayIcon", File.Exists(iconFile) ? iconFile : mainExe);

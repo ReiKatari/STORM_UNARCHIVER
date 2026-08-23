@@ -64,8 +64,8 @@ if (Test-Path "$AssemblingDir\StormUnarchiver.pri") {
 
 # Unblock and digitally sign Assembling binaries
 Get-ChildItem -Path $AssemblingDir -Recurse | Unblock-File -ErrorAction SilentlyContinue
-Get-ChildItem -Path $AssemblingDir -Filter "*.exe" | Set-AuthenticodeSignature -Certificate $cert | Out-Null
-Get-ChildItem -Path $AssemblingDir -Filter "*.dll" | Set-AuthenticodeSignature -Certificate $cert | Out-Null
+Set-AuthenticodeSignature -FilePath "$AssemblingDir\StormUnarchiver.exe" -Certificate $cert | Out-Null
+Set-AuthenticodeSignature -FilePath "$AssemblingDir\StormUnarchiver.dll" -Certificate $cert | Out-Null
 Write-Host "  -> Assembling built and signed: $AssemblingDir" -ForegroundColor Green
 
 # 5. Pack Assembling into Installer payload.zip

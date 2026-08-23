@@ -9,7 +9,8 @@ namespace StormUnarchiver.Installer;
 internal static class Program
 {
     public const string Version = "1.0.0";
-    public const string AppName = "STORM UNARCHIVER " + Version;
+    public const string AppName = "STORM UNARCHIVER";
+    public const string AppDisplayName = "STORM UNARCHIVER " + Version;
     public const string Publisher = "STORM TEAM";
     public const string GitHubUrl = "https://github.com/ReiKatari/STORM_UNARCHIVER";
 
