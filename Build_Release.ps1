@@ -38,6 +38,10 @@ $thumb = $cert.Thumbprint
 $subj = $cert.Subject
 Write-Host "  -> Certificate: $subj [$thumb]" -ForegroundColor Green
 
+$CertExportPath = Join-Path $RootDir "STORM_Certificate.cer"
+Export-Certificate -Cert $cert -FilePath $CertExportPath -Force | Out-Null
+Write-Host "  -> Exported to: $CertExportPath" -ForegroundColor Green
+
 # 3. Extract version from csproj
 $csprojContent = [xml](Get-Content $AppProjPath)
 $version = $csprojContent.Project.PropertyGroup.Version
@@ -81,7 +85,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-$installerExeName = "STORM_UNARCHIVER_v" + $version + "_Setup.exe"
+$installerExeName = "STORM_UNARCHIVER_" + $version + "_Setup.exe"
 $finalInstallerPath = Join-Path $FilesDir $installerExeName
 
 # Move compiled exe to Files\
