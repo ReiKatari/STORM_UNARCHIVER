@@ -40,7 +40,7 @@ public sealed partial class MainWindow : Window
         this.InitializeComponent();
 
         // Window setup
-        Title = "STORM UNARCHIVER 0.2.0";
+        Title = "STORM UNARCHIVER 1.0.0";
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         SetWindowSize(880, 900);
@@ -87,10 +87,6 @@ public sealed partial class MainWindow : Window
         // Restore saved pairs
         RestoreSavedPairs();
 
-        // Minimize to tray checkbox
-        MinimizeToTrayCheckBox.IsChecked = _settings.MinimizeToTray;
-        MinimizeToTrayCheckBox.Checked += (_, _) => { _settings.MinimizeToTray = true; _settings.Save(); };
-        MinimizeToTrayCheckBox.Unchecked += (_, _) => { _settings.MinimizeToTray = false; _settings.Save(); };
 
         // Delete archive checkbox
         DeleteArchiveCheckBox.IsChecked = _settings.DeleteArchiveAfterExtract;
@@ -185,7 +181,7 @@ public sealed partial class MainWindow : Window
         // Close handling
         this.Closed += MainWindow_Closed;
 
-        AddLog(LogLevel.Info, "STORM UNARCHIVER 0.2.0 запущен и готов к работе");
+        AddLog(LogLevel.Info, "STORM UNARCHIVER 1.0.0 запущен и готов к работе");
     }
 
     // ===== WINDOW MANAGEMENT =====
@@ -238,12 +234,12 @@ public sealed partial class MainWindow : Window
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
-        if (_settings.MinimizeToTray && !_forceClose)
+        if (!_forceClose)
         {
             args.Handled = true;
             GetAppWindow()?.Hide();
             if (_isMonitoring)
-                _trayIcon.ShowBalloon("STORM UNARCHIVER", "Программа свёрнута. Мониторинг продолжается.");
+                _trayIcon.ShowBalloon("STORM UNARCHIVER 1.0.0", "Программа свёрнута. Мониторинг продолжается.");
         }
         else
         {

@@ -12,11 +12,11 @@
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>0.2.0</Version>
-    <AssemblyTitle>STORM UNARCHIVER 0.2.0</AssemblyTitle>
-    <Product>STORM UNARCHIVER 0.2.0</Product>
+    <Version>1.0.0</Version>
+    <AssemblyTitle>STORM UNARCHIVER 1.0.0</AssemblyTitle>
+    <Product>STORM UNARCHIVER 1.0.0</Product>
     <Company>STORM TEAM</Company>
-    <Description>STORM UNARCHIVER 0.2.0</Description>
+    <Description>STORM UNARCHIVER 1.0.0</Description>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

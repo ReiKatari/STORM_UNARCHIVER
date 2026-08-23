@@ -41,7 +41,7 @@ Write-Host "  -> Certificate: $subj [$thumb]" -ForegroundColor Green
 # 3. Extract version from csproj
 $csprojContent = [xml](Get-Content $AppProjPath)
 $version = $csprojContent.Project.PropertyGroup.Version
-if ([string]::IsNullOrWhiteSpace($version)) { $version = "0.2.0" }
+if ([string]::IsNullOrWhiteSpace($version)) { $version = "1.0.0" }
 Write-Host "[2/5] Project Version: v$version" -ForegroundColor Green
 
 # 4. Publish application to Assembling (Self-Contained)

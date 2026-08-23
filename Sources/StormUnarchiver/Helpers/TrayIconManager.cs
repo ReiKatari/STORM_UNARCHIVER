@@ -56,9 +56,9 @@ public class TrayIconManager : IDisposable
         _wndProcDelegate = WndProc;
         _hIcon = CreateStormIcon();
         _hMenu = CreatePopupMenu();
-        AppendMenuW(_hMenu, MF_STRING, IDM_SHOW, "Показать окно");
+        AppendMenuW(_hMenu, MF_STRING, IDM_SHOW, "Открыть STORM UNARCHIVER");
         AppendMenuW(_hMenu, MF_SEPARATOR, 0, null);
-        AppendMenuW(_hMenu, MF_STRING, IDM_EXIT, "Выход");
+        AppendMenuW(_hMenu, MF_STRING, IDM_EXIT, "Закрыть приложение (выход)");
 
         // Register window class
         var className = "StormUnarchiverTrayClass";
@@ -84,7 +84,7 @@ public class TrayIconManager : IDisposable
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             uCallbackMessage = WM_TRAYICON,
             hIcon = _hIcon,
-            szTip = "STORM UNARCHIVER 0.2.0"
+            szTip = "STORM UNARCHIVER 1.0.0"
         };
         Shell_NotifyIconW(NIM_ADD, ref nid);
         _iconAdded = true;
@@ -117,9 +117,9 @@ public class TrayIconManager : IDisposable
         var newIcon = CreateStormIcon(state);
         var tip = state switch
         {
-            TrayState.Active => "STORM UNARCHIVER 0.2.0 — Мониторинг...",
-            TrayState.Error => "STORM UNARCHIVER 0.2.0 — Ошибка!",
-            _ => "STORM UNARCHIVER 0.2.0 — Ожидание"
+            TrayState.Active => "STORM UNARCHIVER 1.0.0 — Мониторинг...",
+            TrayState.Error => "STORM UNARCHIVER 1.0.0 — Ошибка!",
+            _ => "STORM UNARCHIVER 1.0.0 — Ожидание"
         };
 
         var nid = new NOTIFYICONDATA
