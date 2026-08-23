@@ -79,7 +79,7 @@ Write-Host "  -> Payload size: $zipSizeMb MB" -ForegroundColor Green
 # 6. Build Installer and save to Files (preserving older versions)
 Write-Host "[5/5] Building installer executable into Files..." -ForegroundColor Yellow
 $tempInstallerOut = Join-Path $FilesDir "temp_build"
-dotnet publish $InstallerProjPath -c $Configuration -r win-x64 -p:PublishSingleFile=true --self-contained true -o $tempInstallerOut --nologo
+dotnet publish $InstallerProjPath -c $Configuration -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true --self-contained true -o $tempInstallerOut --nologo
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Error compiling installer!" -ForegroundColor Red
     exit 1

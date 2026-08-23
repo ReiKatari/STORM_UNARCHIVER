@@ -7,10 +7,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
     <AssemblyTitle>STORM UNARCHIVER 1.0.0</AssemblyTitle>
     <Product>STORM UNARCHIVER 1.0.0</Product>
-    <Company>STORM TEAM</Company>
+    <Title>STORM UNARCHIVER 1.0.0</Title>
     <Description>STORM UNARCHIVER 1.0.0</Description>
+    <Company>STORM TEAM</Company>
+    <Authors>STORM TEAM</Authors>
+    <PublisherName>STORM TEAM</PublisherName>
+    <Copyright>Copyright © 2026 STORM TEAM</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
