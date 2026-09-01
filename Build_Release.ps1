@@ -46,7 +46,7 @@ Write-Host "  -> Exported to: $CertExportPath" -ForegroundColor Green
 $csprojContent = [xml](Get-Content $AppProjPath)
 $version = $csprojContent.Project.PropertyGroup.Version
 if ([string]::IsNullOrWhiteSpace($version)) { $version = "1.0.0" }
-Write-Host "[2/5] Project Version: v$version" -ForegroundColor Green
+Write-Host "[2/5] Project Version: $version" -ForegroundColor Green
 
 # 4. Publish application to Assembling (Self-Contained)
 Write-Host "[3/5] Publishing StormUnarchiver to Assembling (Self-Contained)..." -ForegroundColor Yellow

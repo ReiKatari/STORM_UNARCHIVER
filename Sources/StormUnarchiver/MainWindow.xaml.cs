@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -8,8 +15,6 @@ using Microsoft.UI.Xaml.Media.Animation;
 using StormUnarchiver.Helpers;
 using StormUnarchiver.Models;
 using StormUnarchiver.Services;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -46,11 +51,14 @@ public sealed partial class MainWindow : Window
         SetWindowSize(880, 900);
         CenterOnScreen();
 
-        // Set Window & Taskbar Icon
+        // Set Window and Taskbar Icon
         try
         {
-            var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
-            if (System.IO.File.Exists(iconPath))
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+            if (!File.Exists(iconPath))
+                iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+
+            if (File.Exists(iconPath))
             {
                 GetAppWindow()?.SetIcon(iconPath);
             }
@@ -67,6 +75,27 @@ public sealed partial class MainWindow : Window
         // Bind collections
         LogListView.ItemsSource = _filteredLogEntries;
         PairsListControl.ItemsSource = _folderPairs;
+
+        // Theme and Language selectors
+        ThemeListControl.ItemsSource = ThemeManager.AllThemes;
+        LanguageListControl.ItemsSource = LocalizationManager.SupportedLanguages;
+
+        LocalizationManager.Instance.LanguageChanged += (_, _) =>
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateLocalizedStrings();
+                _trayIcon.UpdateLocalization();
+            });
+        };
+
+        ThemeManager.Instance.ThemeChanged += (_, _) =>
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateStatusBrushes();
+            });
+        };
 
         // Init format lists
         var allFormats = new[] { 
@@ -87,7 +116,6 @@ public sealed partial class MainWindow : Window
         // Restore saved pairs
         RestoreSavedPairs();
 
-
         // Delete archive checkbox
         DeleteArchiveCheckBox.IsChecked = _settings.DeleteArchiveAfterExtract;
         DeleteArchiveCheckBox.Checked += (_, _) => { _settings.DeleteArchiveAfterExtract = true; _settings.Save(); };
@@ -95,8 +123,8 @@ public sealed partial class MainWindow : Window
 
         // Autostart checkbox
         AutoStartCheckBox.IsChecked = _settings.AutoStartWithWindows;
-        AutoStartCheckBox.Checked += (_, _) => { _settings.AutoStartWithWindows = true; _settings.Save(); Helpers.AutoStartHelper.SetAutoStart(true); };
-        AutoStartCheckBox.Unchecked += (_, _) => { _settings.AutoStartWithWindows = false; _settings.Save(); Helpers.AutoStartHelper.SetAutoStart(false); };
+        AutoStartCheckBox.Checked += (_, _) => { _settings.AutoStartWithWindows = true; _settings.Save(); AutoStartHelper.SetAutoStart(true); };
+        AutoStartCheckBox.Unchecked += (_, _) => { _settings.AutoStartWithWindows = false; _settings.Save(); AutoStartHelper.SetAutoStart(false); };
 
         // Subfolders checkbox
         SubfoldersCheckBox.IsChecked = _settings.IncludeSubfolders;
@@ -181,7 +209,147 @@ public sealed partial class MainWindow : Window
         // Close handling
         this.Closed += MainWindow_Closed;
 
-        AddLog(LogLevel.Info, "STORM UNARCHIVER 1.0.0 запущен и готов к работе");
+        // Apply localization
+        UpdateLocalizedStrings();
+
+        AddLog(LogLevel.Info, "STORM UNARCHIVER 1.0.0 — " + LocalizationManager.Instance.GetString("StatusReady"));
+    }
+
+    // ===== LOCALIZATION & THEME HANDLERS =====
+
+    private void ThemeCard_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ThemeType theme)
+        {
+            ThemeManager.Instance.ApplyTheme(theme);
+            _settings.SelectedTheme = theme;
+            _settings.Save();
+        }
+    }
+
+    private void LanguageCard_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string code)
+        {
+            LocalizationManager.Instance.SetLanguage(code);
+            _settings.SelectedLanguage = code;
+            _settings.Save();
+        }
+    }
+
+    private void UpdateLocalizedStrings()
+    {
+        var loc = LocalizationManager.Instance;
+
+        // Header & Buttons
+        WatchedFoldersHeader.Text = loc.GetString("WatchedFolders");
+        AddPairBtnText.Text = loc.GetString("AddPair");
+        ToolTipService.SetToolTip(ThemeButton, loc.GetString("ThemeSelectorTooltip"));
+        ToolTipService.SetToolTip(LanguageButton, loc.GetString("LanguageSelectorTooltip"));
+        ToolTipService.SetToolTip(AboutButton, loc.GetString("AboutTooltip"));
+
+        // Chips & Labels
+        ProcessedLabel.Text = loc.GetString("Processed");
+        ErrorsLabel.Text = loc.GetString("Errors");
+        DeleteArchiveText.Text = loc.GetString("DeleteArchive");
+        ToolTipService.SetToolTip(DeleteArchiveCheckBox, loc.GetString("DeleteArchiveTooltip"));
+        RecursiveUnpackText.Text = loc.GetString("RecursiveUnpack");
+        ToolTipService.SetToolTip(RecursiveUnpackCheckBox, loc.GetString("RecursiveUnpackTooltip"));
+        LowPriorityText.Text = loc.GetString("LowPriority");
+        ToolTipService.SetToolTip(LowPriorityCheckBox, loc.GetString("LowPriorityTooltip"));
+        AutoStartText.Text = loc.GetString("AutoStart");
+        ToolTipService.SetToolTip(AutoStartCheckBox, loc.GetString("AutoStartTooltip"));
+        SubfoldersText.Text = loc.GetString("Subfolders");
+        ToolTipService.SetToolTip(SubfoldersCheckBox, loc.GetString("SubfoldersTooltip"));
+        PreserveStructureText.Text = loc.GetString("PreserveStructure");
+        ToolTipService.SetToolTip(PreserveStructureCheckBox, loc.GetString("PreserveStructureTooltip"));
+        NotificationsText.Text = loc.GetString("Notifications");
+        ToolTipService.SetToolTip(NotificationsCheckBox, loc.GetString("NotificationsTooltip"));
+
+        // Filter presets
+        FilterPresetsLabel.Text = loc.GetString("FilterPresets");
+        PresetAllBtn.Content = loc.GetString("PresetAll");
+        PresetCommonBtn.Content = loc.GetString("PresetCommon");
+        PresetDiskBtn.Content = loc.GetString("PresetDiskImages");
+        PresetResetBtn.Content = loc.GetString("PresetReset");
+
+        // Formats & Password
+        OnlyFormatsLabel.Text = loc.GetString("OnlyFormats");
+        ExcludeFormatsLabel.Text = loc.GetString("ExcludeFormats");
+        PasswordLabel.Text = loc.GetString("Password");
+        PasswordBox.PlaceholderText = loc.GetString("PasswordPlaceholder");
+        PasswordPlainBox.PlaceholderText = loc.GetString("PasswordPlaceholder");
+        ToolTipService.SetToolTip(RevealPasswordButton, loc.GetString("RevealPasswordTooltip"));
+        ToolTipService.SetToolTip(PasswordDictButton, loc.GetString("PasswordDictTooltip"));
+
+        // Password Dictionary Flyout
+        PasswordDictTitleText.Text = loc.GetString("PasswordDictTitle");
+        PasswordDictSubText.Text = loc.GetString("PasswordDictSubtitle");
+        PasswordDictDescText.Text = loc.GetString("PasswordDictDesc");
+        PickPasswordFileBtn.Content = loc.GetString("PasswordDictPick");
+        ClearPasswordDictBtn.Content = loc.GetString("PasswordDictClear");
+
+        // Advanced Params
+        DelayLabel.Text = loc.GetString("Delay");
+        ThreadsLabel.Text = loc.GetString("Threads");
+        RetriesLabel.Text = loc.GetString("Retries");
+
+        // Activity Log
+        ActivityLogHeader.Text = loc.GetString("ActivityLog");
+        LogFilterAllBtn.Content = loc.GetString("LogFilterAll");
+        LogFilterSuccessBtn.Content = loc.GetString("LogFilterSuccess");
+        LogFilterErrorBtn.Content = loc.GetString("LogFilterError");
+        LogFilterInfoBtn.Content = loc.GetString("LogFilterInfo");
+        LogSearchBox.PlaceholderText = loc.GetString("LogSearchPlaceholder");
+        ExportLogBtnText.Text = loc.GetString("Export");
+        ToolTipService.SetToolTip(ExportLogButton, loc.GetString("ExportTooltip"));
+        ClearLogBtnText.Text = loc.GetString("ClearLog");
+        ToolTipService.SetToolTip(ClearLogButton, loc.GetString("ClearLogTooltip"));
+        EmptyLogTitleText.Text = loc.GetString("EmptyLogTitle");
+        EmptyLogSubText.Text = loc.GetString("EmptyLogSubtitle");
+
+        // Empty Pairs
+        EmptyPairsTitleText.Text = loc.GetString("EmptyPairsTitle");
+        EmptyPairsSubText.Text = loc.GetString("EmptyPairsSubtitle");
+        EmptyPairsBtnText.Text = loc.GetString("EmptyPairsButton");
+
+        // About Flyout
+        AboutDescText.Text = loc.GetString("AboutDescription");
+        AboutFormatsLabel.Text = loc.GetString("SupportedFormats");
+        AboutGitHubBtn.Content = loc.GetString("GoToGitHub");
+
+        // Toggle Monitor button text
+        ToggleText.Text = _isMonitoring ? loc.GetString("StopMonitoring") : loc.GetString("StartMonitoring");
+
+        // Update pair count badge & status
+        UpdatePairsEmptyState();
+        UpdateStatusText();
+    }
+
+    private void UpdateStatusBrushes()
+    {
+        if (Application.Current.Resources.TryGetValue("StormSurfaceBrush", out var sBrush) && sBrush is Brush b)
+        {
+            RootGrid.Background = b;
+        }
+        UpdateStatusText();
+    }
+
+    private void UpdateStatusText()
+    {
+        var loc = LocalizationManager.Instance;
+        if (_isMonitoring)
+        {
+            StatusText.Text = loc.GetString("StatusMonitoring", _watchers.Count);
+            StatusText.Foreground = (SolidColorBrush)Application.Current.Resources["StormSuccessBrush"];
+            StatusDot.Fill = (SolidColorBrush)Application.Current.Resources["StormSuccessBrush"];
+        }
+        else
+        {
+            StatusText.Text = loc.GetString("StatusReady");
+            StatusText.Foreground = (SolidColorBrush)Application.Current.Resources["StormTextDimBrush"];
+            StatusDot.Fill = (SolidColorBrush)Application.Current.Resources["StormTextDimBrush"];
+        }
     }
 
     // ===== WINDOW MANAGEMENT =====
@@ -239,7 +407,7 @@ public sealed partial class MainWindow : Window
             args.Handled = true;
             GetAppWindow()?.Hide();
             if (_isMonitoring)
-                _trayIcon.ShowBalloon("STORM UNARCHIVER 1.0.0", "Программа свёрнута. Мониторинг продолжается.");
+                _trayIcon.ShowBalloon("STORM UNARCHIVER 1.0.0", LocalizationManager.Instance.GetString("StatusMonitoring", _watchers.Count));
         }
         else
         {
@@ -270,17 +438,7 @@ public sealed partial class MainWindow : Window
     {
         var count = _folderPairs.Count;
         EmptyPairsState.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        PairsCountBadge.Text = $"{count} {GetPairDeclension(count)}";
-    }
-
-    private static string GetPairDeclension(int n)
-    {
-        int rem100 = n % 100;
-        int rem10 = n % 10;
-        if (rem100 >= 11 && rem100 <= 19) return "пар";
-        if (rem10 == 1) return "пара";
-        if (rem10 >= 2 && rem10 <= 4) return "пары";
-        return "пар";
+        PairsCountBadge.Text = LocalizationManager.Instance.GetString("PairsCount", count);
     }
 
     private void AddPair_Click(object sender, RoutedEventArgs e)
@@ -289,7 +447,7 @@ public sealed partial class MainWindow : Window
         _folderPairs.Add(pair);
         SavePairs();
         UpdatePairsEmptyState();
-        AddLog(LogLevel.Info, "Добавлена новая пара папок");
+        AddLog(LogLevel.Info, LocalizationManager.Instance.GetString("AddPair"));
     }
 
     private void RemovePair_Click(object sender, RoutedEventArgs e)
@@ -306,7 +464,7 @@ public sealed partial class MainWindow : Window
         _folderPairs.Remove(pair);
         SavePairs();
         UpdatePairsEmptyState();
-        AddLog(LogLevel.Info, "Пара папок удалена");
+        AddLog(LogLevel.Info, LocalizationManager.Instance.GetString("RemovePairTooltip"));
 
         if (_isMonitoring && _watchers.Count == 0)
             StopAllMonitoring();
@@ -323,7 +481,7 @@ public sealed partial class MainWindow : Window
         {
             pair.WatchFolder = path;
             SavePairs();
-            AddLog(LogLevel.Info, $"Папка-источник: {path}");
+            AddLog(LogLevel.Info, $"{LocalizationManager.Instance.GetString("WatchFolderTooltip")}: {path}");
         }
     }
 
@@ -336,7 +494,7 @@ public sealed partial class MainWindow : Window
         {
             pair.OutputFolder = path;
             SavePairs();
-            AddLog(LogLevel.Info, $"Папка назначения: {path}");
+            AddLog(LogLevel.Info, $"{LocalizationManager.Instance.GetString("OutputFolderTooltip")}: {path}");
         }
     }
 
@@ -360,7 +518,7 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            if (System.IO.Directory.Exists(path) || System.IO.File.Exists(path))
+            if (Directory.Exists(path) || File.Exists(path))
             {
                 Process.Start(new ProcessStartInfo
                 {
@@ -393,7 +551,7 @@ public sealed partial class MainWindow : Window
     private void PairWatch_DragOver(object sender, DragEventArgs e)
     {
         e.AcceptedOperation = DataPackageOperation.Link;
-        e.DragUIOverride.Caption = "Папка-источник";
+        e.DragUIOverride.Caption = LocalizationManager.Instance.GetString("WatchFolderTooltip");
         e.DragUIOverride.IsCaptionVisible = true;
     }
 
@@ -406,14 +564,14 @@ public sealed partial class MainWindow : Window
         {
             pair.WatchFolder = folder;
             SavePairs();
-            AddLog(LogLevel.Info, $"Папка-источник: {folder}");
+            AddLog(LogLevel.Info, $"{LocalizationManager.Instance.GetString("WatchFolderTooltip")}: {folder}");
         }
     }
 
     private void PairOutput_DragOver(object sender, DragEventArgs e)
     {
         e.AcceptedOperation = DataPackageOperation.Link;
-        e.DragUIOverride.Caption = "Папка назначения";
+        e.DragUIOverride.Caption = LocalizationManager.Instance.GetString("OutputFolderTooltip");
         e.DragUIOverride.IsCaptionVisible = true;
     }
 
@@ -426,7 +584,7 @@ public sealed partial class MainWindow : Window
         {
             pair.OutputFolder = folder;
             SavePairs();
-            AddLog(LogLevel.Info, $"Папка назначения: {folder}");
+            AddLog(LogLevel.Info, $"{LocalizationManager.Instance.GetString("OutputFolderTooltip")}: {folder}");
         }
     }
 
@@ -450,10 +608,11 @@ public sealed partial class MainWindow : Window
 
     private void StartAllMonitoring()
     {
+        var loc = LocalizationManager.Instance;
         var configured = _folderPairs.Where(p => p.IsConfigured).ToList();
         if (configured.Count == 0)
         {
-            AddLog(LogLevel.Warning, "Нет полностью настроенных пар папок для мониторинга");
+            AddLog(LogLevel.Warning, loc.GetString("EmptyPairsSubtitle"));
             return;
         }
 
@@ -466,7 +625,7 @@ public sealed partial class MainWindow : Window
                 var watcher = new ArchiveWatcherService(
                     pair.WatchFolder, pair.OutputFolder,
                     onDetected: (f) => DispatcherQueue.TryEnqueue(() =>
-                        AddLog(LogLevel.Info, $"Обнаружен архив: {f}")),
+                        AddLog(LogLevel.Info, $"{f}")),
                     onProcessed: (f, ok, detail) => DispatcherQueue.TryEnqueue(() =>
                     {
                         if (ok)
@@ -475,7 +634,7 @@ public sealed partial class MainWindow : Window
                             ProcessedCount.Text = _processedCount.ToString();
                             AddLog(LogLevel.Success, $"{f} {detail}");
                             if (_settings.ShowNotifications)
-                                _trayIcon.ShowBalloon("Распаковано", $"{f} {detail}");
+                                _trayIcon.ShowBalloon(loc.GetString("Processed"), $"{f} {detail}");
                         }
                         else
                         {
@@ -483,7 +642,7 @@ public sealed partial class MainWindow : Window
                             ErrorCount.Text = _errorCount.ToString();
                             AddLog(LogLevel.Error, $"{f} — {detail}");
                             if (_settings.ShowNotifications)
-                                _trayIcon.ShowBalloon("Ошибка распаковки", $"{f} — {detail}");
+                                _trayIcon.ShowBalloon(loc.GetString("Errors"), $"{f} — {detail}");
                         }
                     }),
                     getDeleteArchive: () => _settings.DeleteArchiveAfterExtract,
@@ -510,11 +669,11 @@ public sealed partial class MainWindow : Window
 
                 watcher.Start();
                 _watchers[pair.Id] = watcher;
-                AddLog(LogLevel.Success, $"Запущен мониторинг: {pair.WatchFolder}");
+                AddLog(LogLevel.Success, $"{loc.GetString("StatusMonitoring", 1)}: {pair.WatchFolder}");
             }
             catch (Exception ex)
             {
-                AddLog(LogLevel.Error, $"Ошибка запуска: {ex.Message}");
+                AddLog(LogLevel.Error, $"{ex.Message}");
             }
         }
 
@@ -522,13 +681,11 @@ public sealed partial class MainWindow : Window
         {
             _isMonitoring = true;
             ToggleIcon.Glyph = "\uE71A";
-            ToggleText.Text = "Остановить мониторинг";
+            ToggleText.Text = loc.GetString("StopMonitoring");
             ToggleMonitorButton.Background = new SolidColorBrush(ColorHelper.FromArgb(255, 220, 60, 60));
-            StatusDot.Fill = (SolidColorBrush)Application.Current.Resources["StormSuccessBrush"];
-            StatusText.Text = $"Мониторинг активен ({_watchers.Count} {_watchers.Count switch { 1 => "папка", >= 2 and <= 4 => "папки", _ => "папок" }})";
-            StatusText.Foreground = (SolidColorBrush)Application.Current.Resources["StormSuccessBrush"];
+            UpdateStatusText();
             AnimateStatusPulse();
-            _trayIcon.SetMonitoringState(Helpers.TrayState.Active);
+            _trayIcon.SetMonitoringState(TrayState.Active);
         }
     }
 
@@ -587,11 +744,11 @@ public sealed partial class MainWindow : Window
                 PasswordDictionaryBox.Text = string.Join(Environment.NewLine, _settings.PasswordDictionary);
                 _settings.Save();
                 UpdatePasswordDictStatus();
-                AddLog(LogLevel.Success, $"Загружен словарь паролей ({count} новых): {file.Name}");
+                AddLog(LogLevel.Success, $"{file.Name} ({count})");
             }
             catch (Exception ex)
             {
-                AddLog(LogLevel.Error, $"Ошибка чтения словаря: {ex.Message}");
+                AddLog(LogLevel.Error, $"{ex.Message}");
             }
         }
     }
@@ -603,13 +760,13 @@ public sealed partial class MainWindow : Window
         _settings.Save();
         PasswordDictionaryBox.Text = "";
         UpdatePasswordDictStatus();
-        AddLog(LogLevel.Info, "Словарь паролей очищен");
+        AddLog(LogLevel.Info, LocalizationManager.Instance.GetString("PasswordDictClear"));
     }
 
     private void UpdatePasswordDictStatus()
     {
         var count = _settings.PasswordDictionary.Count;
-        PasswordDictStatusText.Text = count > 0 ? $"В словаре: {count} паролей" : "Словарь пуст";
+        PasswordDictStatusText.Text = count > 0 ? $"{count}" : "";
     }
 
     private void StopAllMonitoring()
@@ -620,14 +777,13 @@ public sealed partial class MainWindow : Window
 
         DispatcherQueue.TryEnqueue(() =>
         {
+            var loc = LocalizationManager.Instance;
             ToggleIcon.Glyph = "\uE768";
-            ToggleText.Text = "Начать мониторинг";
+            ToggleText.Text = loc.GetString("StartMonitoring");
             ToggleMonitorButton.Background = (SolidColorBrush)Application.Current.Resources["StormAccentDarkBrush"];
-            StatusDot.Fill = (SolidColorBrush)Application.Current.Resources["StormTextDimBrush"];
-            StatusText.Text = "Ожидание запуска";
-            StatusText.Foreground = (SolidColorBrush)Application.Current.Resources["StormTextDimBrush"];
-            AddLog(LogLevel.Info, "Мониторинг всех папок остановлен");
-            _trayIcon.SetMonitoringState(Helpers.TrayState.Idle);
+            UpdateStatusText();
+            AddLog(LogLevel.Info, loc.GetString("StatusStopped"));
+            _trayIcon.SetMonitoringState(TrayState.Idle);
         });
     }
 
@@ -703,20 +859,20 @@ public sealed partial class MainWindow : Window
     {
         if (_allLogEntries.Count == 0) return;
 
-        var picker = new Windows.Storage.Pickers.FileSavePicker();
-        picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Desktop;
-        picker.FileTypeChoices.Add("Текстовый файл", new List<string> { ".txt" });
+        var picker = new FileSavePicker();
+        picker.SuggestedStartLocation = PickerLocationId.Desktop;
+        picker.FileTypeChoices.Add("Text file", new List<string> { ".txt" });
         picker.FileTypeChoices.Add("CSV", new List<string> { ".csv" });
-        picker.SuggestedFileName = $"storm_log_{DateTime.Now:yyyyMMdd_HHmmss}";
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
+        picker.SuggestedFileName = $"storm_unarchiver_log_{DateTime.Now:yyyyMMdd_HHmm}";
+        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
 
         var file = await picker.PickSaveFileAsync();
         if (file != null)
         {
             var lines = _allLogEntries.Select(e2 =>
                 $"{e2.TimeString}\t{e2.Level}\t{e2.Message}");
-            await Windows.Storage.FileIO.WriteLinesAsync(file, lines);
-            AddLog(LogLevel.Info, $"Журнал экспортирован: {file.Path}");
+            await FileIO.WriteLinesAsync(file, lines);
+            AddLog(LogLevel.Info, $"{LocalizationManager.Instance.GetString("Export")}: {file.Path}");
         }
     }
 
@@ -730,14 +886,14 @@ public sealed partial class MainWindow : Window
             PasswordPlainBox.Text = PasswordBox.Password;
             PasswordPlainBox.Visibility = Visibility.Visible;
             PasswordBox.Visibility = Visibility.Collapsed;
-            RevealPasswordIcon.Glyph = "\uE890"; // open eye
+            RevealPasswordIcon.Glyph = "\uE890";
         }
         else
         {
             PasswordBox.Password = PasswordPlainBox.Text;
             PasswordBox.Visibility = Visibility.Visible;
             PasswordPlainBox.Visibility = Visibility.Collapsed;
-            RevealPasswordIcon.Glyph = "\uE7B3"; // closed eye
+            RevealPasswordIcon.Glyph = "\uE7B3";
         }
     }
 
@@ -811,15 +967,15 @@ public sealed partial class MainWindow : Window
         };
     }
 
-    private static void InitComboFromTag(Microsoft.UI.Xaml.Controls.ComboBox combo, int value, int[] values)
+    private static void InitComboFromTag(ComboBox combo, int value, int[] values)
     {
         var idx = Array.IndexOf(values, value);
         combo.SelectedIndex = idx >= 0 ? idx : 0;
     }
 
-    private static int? GetComboTag(Microsoft.UI.Xaml.Controls.ComboBox combo)
+    private static int? GetComboTag(ComboBox combo)
     {
-        if (combo.SelectedItem is Microsoft.UI.Xaml.Controls.ComboBoxItem item
+        if (combo.SelectedItem is ComboBoxItem item
             && item.Tag is string tag && int.TryParse(tag, out var val))
             return val;
         return null;

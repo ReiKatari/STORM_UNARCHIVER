@@ -34,23 +34,102 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- App Brand Icon & Distinctive Title -->
+            <!-- App Brand Icon and Distinctive Title -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <Border Background="#1A4CC9F0" BorderBrush="#334CC9F0" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0" VerticalAlignment="Center">
+                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0" VerticalAlignment="Center">
                     <Image Source="Assets/Square44x44Logo.png" Width="15" Height="15" Stretch="UniformToFill" />
                 </Border>
                 <TextBlock Text="STORM" FontWeight="Bold" FontSize="15" Foreground="{StaticResource StormAccentBrush}" VerticalAlignment="Center"/>
                 <TextBlock Text=" UNARCHIVER" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource StormTextBrush}" VerticalAlignment="Center"/>
                 <!-- Version Badge -->
-                <Border Background="#1A4CC9F0" BorderBrush="{StaticResource StormAccentBrush}" BorderThickness="1" CornerRadius="8" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                <Border Background="#1A00D2FF" BorderBrush="{StaticResource StormAccentBrush}" BorderThickness="1" CornerRadius="8" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
                     <TextBlock Text="1.0.0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource StormAccentBrush}"/>
                 </Border>
             </StackPanel>
 
-            <!-- Right Titlebar Action Buttons -->
+            <!-- Right Titlebar Action Buttons: Theme, Language, GitHub, About -->
             <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" Margin="0,0,140,0" VerticalAlignment="Center">
-                <Button Click="GitHub_Click" Height="30" Padding="10,0" CornerRadius="6"
-                        Background="#154CC9F0" BorderBrush="#224CC9F0" BorderThickness="1"
+                
+                <!-- Theme Selector Flyout -->
+                <Button x:Name="ThemeButton" Height="30" Width="30" Padding="0" CornerRadius="6"
+                        Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1"
+                        ToolTipService.ToolTip="Выбрать тему оформления">
+                    <FontIcon Glyph="&#xE771;" FontSize="12" Foreground="{StaticResource StormAccentBrush}" />
+                    <Button.Flyout>
+                        <Flyout>
+                            <StackPanel Spacing="8" Width="260" Padding="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE771;" FontSize="14" Foreground="{StaticResource StormAccentBrush}" />
+                                    <TextBlock x:Name="ThemeMenuTitle" Text="Темы оформления" FontWeight="Bold" FontSize="13" Foreground="{StaticResource StormTextBrush}" />
+                                </StackPanel>
+                                <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ThemeListControl">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Click="ThemeCard_Click" Tag="{Binding Type}"
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                        Margin="0,0,0,4" Padding="8,6" CornerRadius="6"
+                                                        Background="#08FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1">
+                                                    <Grid ColumnSpacing="10">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding AccentBrush}" BorderBrush="#30FFFFFF" BorderThickness="1" VerticalAlignment="Center" />
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource StormTextBrush}" />
+                                                            <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{StaticResource StormTextDimBrush}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <!-- Language Selector Flyout -->
+                <Button x:Name="LanguageButton" Height="30" Width="30" Padding="0" CornerRadius="6"
+                        Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1"
+                        ToolTipService.ToolTip="Выбрать язык интерфейса">
+                    <FontIcon Glyph="&#xF2B7;" FontSize="12" Foreground="{StaticResource StormAccentBrush}" />
+                    <Button.Flyout>
+                        <Flyout>
+                            <StackPanel Spacing="8" Width="220" Padding="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xF2B7;" FontSize="14" Foreground="{StaticResource StormAccentBrush}" />
+                                    <TextBlock x:Name="LanguageMenuTitle" Text="Язык интерфейса" FontWeight="Bold" FontSize="13" Foreground="{StaticResource StormTextBrush}" />
+                                </StackPanel>
+                                <ItemsControl x:Name="LanguageListControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Click="LanguageCard_Click" Tag="{Binding Code}"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                    Margin="0,0,0,4" Padding="10,6" CornerRadius="6"
+                                                    Background="#08FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1">
+                                                <Grid ColumnSpacing="10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Flag}" FontSize="14" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding NativeName}" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource StormTextBrush}" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <!-- GitHub Button -->
+                <Button x:Name="GitHubButton" Click="GitHub_Click" Height="30" Padding="10,0" CornerRadius="6"
+                        Background="#1500D2FF" BorderBrush="#2200D2FF" BorderThickness="1"
                         ToolTipService.ToolTip="Открыть репозиторий GitHub (https://github.com/ReiKatari/STORM_UNARCHIVER)">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE71B;" FontSize="11" Foreground="{StaticResource StormAccentBrush}" />
@@ -58,13 +137,14 @@
                     </StackPanel>
                 </Button>
 
-                <Button Height="30" Width="30" Padding="0" CornerRadius="6"
+                <!-- About Button -->
+                <Button x:Name="AboutButton" Height="30" Width="30" Padding="0" CornerRadius="6"
                         Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1"
                         ToolTipService.ToolTip="О программе и справка">
                     <FontIcon Glyph="&#xE946;" FontSize="12" Foreground="{StaticResource StormTextDimBrush}" />
                     <Button.Flyout>
                         <Flyout>
-                            <StackPanel Spacing="10" Width="290" Padding="4">
+                            <StackPanel Spacing="10" Width="300" Padding="4">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <Image Source="Assets/Square44x44Logo.png" Width="36" Height="36" />
                                     <StackPanel>
@@ -75,16 +155,16 @@
                                         <TextBlock Text="Версия 1.0.0 • .NET 8 • WinUI 3" FontSize="11" Foreground="{StaticResource StormTextDimBrush}" />
                                     </StackPanel>
                                 </StackPanel>
-                                <TextBlock Text="Автоматическая фоновая распаковка архивов (100+ форматов) в реальном времени, словари паролей, рекурсивная распаковка и I/O throttling."
+                                <TextBlock x:Name="AboutDescText" Text="Автоматическая фоновая распаковка архивов (100+ форматов) в реальном времени, словари паролей, рекурсивная распаковка и эко-режим."
                                            TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource StormTextBrush}" />
                                 <Border Background="#10FFFFFF" CornerRadius="6" Padding="8">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="Поддержка форматов:" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource StormAccentBrush}" />
+                                        <TextBlock x:Name="AboutFormatsLabel" Text="Поддержка форматов:" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource StormAccentBrush}" />
                                         <TextBlock Text="ZIP, RAR, 7Z, TAR, GZ, XZ, BZ2, ZST, ISO, CAB, APK, DMG, VHD и многие другие."
                                                    FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource StormTextDimBrush}" />
                                     </StackPanel>
                                 </Border>
-                                <Button Content="Перейти на GitHub" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" Click="GitHub_Click" />
+                                <Button x:Name="AboutGitHubBtn" Content="Перейти на GitHub" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" Click="GitHub_Click" />
                             </StackPanel>
                         </Flyout>
                     </Button.Flyout>
@@ -115,21 +195,21 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xED25;" FontSize="15"
                                       Foreground="{StaticResource StormAccentBrush}" />
-                            <TextBlock Text="Папки для отслеживания" FontSize="14" FontWeight="SemiBold"
+                            <TextBlock x:Name="WatchedFoldersHeader" Text="Папки для отслеживания" FontSize="14" FontWeight="SemiBold"
                                        Foreground="{StaticResource StormTextBrush}"
                                        VerticalAlignment="Center" />
-                            <Border CornerRadius="4" Padding="6,1" Background="#154CC9F0" VerticalAlignment="Center">
+                            <Border CornerRadius="4" Padding="6,1" Background="#1500D2FF" VerticalAlignment="Center">
                                 <TextBlock x:Name="PairsCountBadge" Text="0 пар" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource StormAccentBrush}" />
                             </Border>
                         </StackPanel>
 
-                        <Button Grid.Column="2" Click="AddPair_Click"
+                        <Button x:Name="AddPairButton" Grid.Column="2" Click="AddPair_Click"
                                 Height="32" CornerRadius="8" Padding="14,0"
                                 Background="{StaticResource StormAccentBrush}"
-                                Foreground="#1A1B2E" FontSize="12" FontWeight="SemiBold">
+                                Foreground="{StaticResource StormDarkBgBrush}" FontSize="12" FontWeight="SemiBold">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE710;" FontSize="11" Foreground="#1A1B2E" />
-                                <TextBlock Text="Добавить пару" VerticalAlignment="Center" />
+                                <FontIcon Glyph="&#xE710;" FontSize="11" Foreground="{StaticResource StormDarkBgBrush}" />
+                                <TextBlock x:Name="AddPairBtnText" Text="Добавить пару" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -267,34 +347,27 @@
                             <FontIcon Glyph="&#xED25;" FontSize="36"
                                       Foreground="{StaticResource StormTextDimBrush}"
                                       HorizontalAlignment="Center" Opacity="0.6" />
-                            <TextBlock Text="Нет добавленных пар папок" FontSize="14" FontWeight="SemiBold"
+                            <TextBlock x:Name="EmptyPairsTitleText" Text="Нет добавленных пар папок" FontSize="14" FontWeight="SemiBold"
                                        Foreground="{StaticResource StormTextBrush}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="Нажмите «Добавить пару», чтобы задать источник архивов и папку распаковки."
+                            <TextBlock x:Name="EmptyPairsSubText" Text="Нажмите «Добавить пару», чтобы задать источник архивов и папку распаковки."
                                        FontSize="12" Foreground="{StaticResource StormTextDimBrush}"
                                        HorizontalAlignment="Center" />
                             <Button Click="AddPair_Click" HorizontalAlignment="Center" Margin="0,4,0,0"
                                     Style="{StaticResource AccentButtonStyle}" Padding="16,6">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE710;" FontSize="12" />
-                                    <TextBlock Text="Добавить первую пару" />
+                                    <TextBlock x:Name="EmptyPairsBtnText" Text="Добавить первую пару" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                     </Border>
                 </Grid>
 
-                <!-- ===== CONTROL PANEL (Professional) ===== -->
+                <!-- ===== CONTROL PANEL (Elevated 3D Card) ===== -->
                 <Border CornerRadius="14" Padding="2"
-                        BorderThickness="1" BorderBrush="#20FFFFFF">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#2E3052" Offset="0" />
-                            <GradientStop Color="#242640" Offset="0.5" />
-                            <GradientStop Color="#1E2038" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-
+                        BorderThickness="1" BorderBrush="#20FFFFFF"
+                        Background="{StaticResource StormSurfaceLightBrush}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -306,13 +379,6 @@
                         <!-- Main Monitoring Button Bar -->
                         <Border Grid.Row="0" CornerRadius="12,12,0,0" Padding="18,14,18,12"
                                 BorderThickness="0,0,0,1" BorderBrush="#0AFFFFFF">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#0CFFFFFF" Offset="0" />
-                                    <GradientStop Color="#00FFFFFF" Offset="1" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-
                             <Button x:Name="ToggleMonitorButton"
                                     HorizontalAlignment="Stretch"
                                     Height="48" CornerRadius="10"
@@ -340,7 +406,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE73E;" FontSize="11"
                                                       Foreground="{StaticResource StormSuccessBrush}" />
-                                            <TextBlock Text="Распаковано" FontSize="11"
+                                            <TextBlock x:Name="ProcessedLabel" Text="Распаковано" FontSize="11"
                                                        Foreground="{StaticResource StormSuccessBrush}" Opacity="0.8" />
                                             <TextBlock x:Name="ProcessedCount" Text="0"
                                                        FontSize="12" FontWeight="Bold"
@@ -353,7 +419,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE711;" FontSize="11"
                                                       Foreground="{StaticResource StormErrorBrush}" />
-                                            <TextBlock Text="Ошибки" FontSize="11"
+                                            <TextBlock x:Name="ErrorsLabel" Text="Ошибки" FontSize="11"
                                                        Foreground="{StaticResource StormErrorBrush}" Opacity="0.8" />
                                             <TextBlock x:Name="ErrorCount" Text="0"
                                                        FontSize="12" FontWeight="Bold"
@@ -364,54 +430,53 @@
                                 
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
                                     <!-- Chips (ToggleButtons) -->
-
                                     <ToggleButton x:Name="DeleteArchiveCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Удалять исходный архив после успешной распаковки">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE74D;" FontSize="11" />
-                                            <TextBlock Text="Удалять архив" />
+                                            <TextBlock x:Name="DeleteArchiveText" Text="Удалять архив" />
                                         </StackPanel>
                                     </ToggleButton>
                                     <ToggleButton x:Name="RecursiveUnpackCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Рекурсивная распаковка: автоматически распаковывать вложенные архивы">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE8B7;" FontSize="11" />
-                                            <TextBlock Text="Вложенные" />
+                                            <TextBlock x:Name="RecursiveUnpackText" Text="Вложенные" />
                                         </StackPanel>
                                     </ToggleButton>
                                     <ToggleButton x:Name="LowPriorityCheckBox" Style="{StaticResource ToggleChipStyle}"
-                                                  ToolTipService.ToolTip="Эко-режим: фоновый низкий приоритет CPU и I/O диска">
+                                                  ToolTipService.ToolTip="Эко-режим: фоновый низкий приоритет CPU и диска">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE945;" FontSize="11" />
-                                            <TextBlock Text="Эко-режим" />
+                                            <TextBlock x:Name="LowPriorityText" Text="Эко-режим" />
                                         </StackPanel>
                                     </ToggleButton>
                                     <ToggleButton x:Name="AutoStartCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Запускать STORM UNARCHIVER при старте Windows">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE7B5;" FontSize="11" />
-                                            <TextBlock Text="Автозапуск" />
+                                            <TextBlock x:Name="AutoStartText" Text="Автозапуск" />
                                         </StackPanel>
                                     </ToggleButton>
                                     <ToggleButton x:Name="SubfoldersCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Отслеживать архивы во всех подпапках директории">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xED25;" FontSize="11" />
-                                            <TextBlock Text="Подпапки" />
+                                            <TextBlock x:Name="SubfoldersText" Text="Подпапки" />
                                         </StackPanel>
                                     </ToggleButton>
                                     <ToggleButton x:Name="PreserveStructureCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Сохранять структуру каталогов внутри архива">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE81E;" FontSize="11" />
-                                            <TextBlock Text="Структура" />
+                                            <TextBlock x:Name="PreserveStructureText" Text="Структура" />
                                         </StackPanel>
                                     </ToggleButton>
                                     <ToggleButton x:Name="NotificationsCheckBox" Style="{StaticResource ToggleChipStyle}"
                                                   ToolTipService.ToolTip="Показывать всплывающие уведомления Windows">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xEA8F;" FontSize="11" />
-                                            <TextBlock Text="Уведомления" />
+                                            <TextBlock x:Name="NotificationsText" Text="Уведомления" />
                                         </StackPanel>
                                     </ToggleButton>
                                 </StackPanel>
@@ -429,20 +494,20 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <FontIcon Glyph="&#xE71C;" FontSize="11" Foreground="{StaticResource StormAccentBrush}" />
-                                        <TextBlock Text="Пресеты фильтров:" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource StormTextDimBrush}" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="FilterPresetsLabel" Text="Пресеты фильтров:" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource StormTextDimBrush}" VerticalAlignment="Center" />
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
-                                        <Button Content="Все форматы (100+)" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
+                                        <Button x:Name="PresetAllBtn" Content="Все форматы (100+)" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
                                                 Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1"
                                                 Click="PresetAll_Click" />
-                                        <Button Content="Основные (ZIP, RAR, 7Z, TAR)" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
+                                        <Button x:Name="PresetCommonBtn" Content="Основные (ZIP, RAR, 7Z, TAR)" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
                                                 Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1"
                                                 Click="PresetCommon_Click" />
-                                        <Button Content="Образы дисков (ISO, IMG, VHD)" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
+                                        <Button x:Name="PresetDiskBtn" Content="Образы дисков (ISO, IMG, VHD)" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
                                                 Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1"
                                                 Click="PresetDiskImages_Click" />
-                                        <Button Content="Сбросить" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
+                                        <Button x:Name="PresetResetBtn" Content="Сбросить" FontSize="10" Height="24" Padding="8,0" CornerRadius="5"
                                                 Background="#15F87171" Foreground="{StaticResource StormErrorBrush}" BorderThickness="0"
                                                 Click="PresetReset_Click" />
                                     </StackPanel>
@@ -466,7 +531,7 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <FontIcon Glyph="&#xE71C;" FontSize="12" Foreground="{StaticResource StormAccentBrush}" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="Только" FontSize="11" FontWeight="SemiBold"
+                                            <TextBlock x:Name="OnlyFormatsLabel" Grid.Column="1" Text="Только" FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{StaticResource StormAccentBrush}" VerticalAlignment="Center" />
                                             <TextBox x:Name="ExtensionFilterBox" Grid.Column="2" TextChanged="ExtensionFilterBox_TextChanged"
                                                       PlaceholderText=".zip, .rar, .7z" Height="28" FontSize="11"
@@ -512,7 +577,7 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{StaticResource StormErrorBrush}" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="Исключить" FontSize="11" FontWeight="SemiBold"
+                                            <TextBlock x:Name="ExcludeFormatsLabel" Grid.Column="1" Text="Исключить" FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{StaticResource StormErrorBrush}" VerticalAlignment="Center" />
                                             <TextBox x:Name="ExcludeMaskBox" Grid.Column="2" TextChanged="ExcludeMaskBox_TextChanged"
                                                       PlaceholderText="*_part*, *.tmp" Height="28" FontSize="11"
@@ -547,7 +612,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Password Field with Reveal Toggle & Dictionary Manager -->
+                                    <!-- Password Field with Reveal Toggle and Dictionary Manager -->
                                     <Border Grid.Column="2" CornerRadius="8" Padding="10,5"
                                             Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1">
                                         <Grid ColumnSpacing="6">
@@ -559,7 +624,7 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <FontIcon Glyph="&#xE8D7;" FontSize="12" Foreground="{StaticResource StormWarningBrush}" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="Пароль" FontSize="11" FontWeight="SemiBold"
+                                            <TextBlock x:Name="PasswordLabel" Grid.Column="1" Text="Пароль" FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{StaticResource StormWarningBrush}" VerticalAlignment="Center" />
                                             <PasswordBox x:Name="PasswordBox" Grid.Column="2"
                                                           PlaceholderText="для архивов" Height="28" FontSize="11"
@@ -572,12 +637,12 @@
                                             <ToggleButton x:Name="RevealPasswordButton" Grid.Column="3" Width="26" Height="26" Padding="0"
                                                           Background="Transparent" BorderThickness="0"
                                                           Click="RevealPassword_Click"
-                                                          ToolTipService.ToolTip="Показать / скрыть пароль">
-                                                <FontIcon x:Name="RevealPasswordIcon" Glyph="&#xE7B3;" FontSize="12" Foreground="{StaticResource StormTextDimBrush}" />
+                                                          ToolTipService.ToolTip="Показать или скрыть пароль">
+                                                <FontIcon x:Name="RevealPasswordIcon" Glyph="&#xE7B3;" FontSize="11" Foreground="{StaticResource StormTextDimBrush}" />
                                             </ToggleButton>
 
                                             <!-- Password Dictionary Manager Button -->
-                                            <Button Grid.Column="4" Width="26" Height="26" Padding="0"
+                                            <Button x:Name="PasswordDictButton" Grid.Column="4" Width="26" Height="26" Padding="0"
                                                     Background="#15FBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="5"
                                                     ToolTipService.ToolTip="Менеджер словарей паролей (автоматический подбор)">
                                                 <FontIcon Glyph="&#xE8D7;" FontSize="11" Foreground="{StaticResource StormWarningBrush}" />
@@ -587,19 +652,19 @@
                                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                                 <FontIcon Glyph="&#xE8D7;" FontSize="16" Foreground="{StaticResource StormWarningBrush}" />
                                                                 <StackPanel>
-                                                                    <TextBlock Text="Словарь паролей" FontWeight="Bold" FontSize="13" Foreground="{StaticResource StormTextBrush}" />
-                                                                    <TextBlock Text="Автоподбор для защищенных архивов" FontSize="10" Foreground="{StaticResource StormTextDimBrush}" />
+                                                                    <TextBlock x:Name="PasswordDictTitleText" Text="Словарь паролей" FontWeight="Bold" FontSize="13" Foreground="{StaticResource StormTextBrush}" />
+                                                                    <TextBlock x:Name="PasswordDictSubText" Text="Автоподбор для защищенных архивов" FontSize="10" Foreground="{StaticResource StormTextDimBrush}" />
                                                                 </StackPanel>
                                                             </StackPanel>
-                                                            <TextBlock Text="Введите список паролей (по одному в строке). При распаковке зашифрованных архивов STORM автоматически переберет их:"
+                                                            <TextBlock x:Name="PasswordDictDescText" Text="Введите список паролей (по одному в строке). При распаковке зашифрованных архивов STORM автоматически переберет их:"
                                                                        FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource StormTextBrush}" />
                                                             <TextBox x:Name="PasswordDictionaryBox" Height="100" AcceptsReturn="True"
                                                                      PlaceholderText="123456, password, secret, admin..."
                                                                      FontSize="11" FontFamily="Cascadia Code,Consolas"
                                                                      TextWrapping="Wrap" />
                                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                                <Button Content="Выбрать .txt файл" FontSize="11" Click="PickPasswordFile_Click" Style="{StaticResource AccentButtonStyle}" Padding="10,4" />
-                                                                <Button Content="Очистить" FontSize="11" Click="ClearPasswordDict_Click" Padding="10,4" />
+                                                                <Button x:Name="PickPasswordFileBtn" Content="Выбрать .txt файл" FontSize="11" Click="PickPasswordFile_Click" Style="{StaticResource AccentButtonStyle}" Padding="10,4" />
+                                                                <Button x:Name="ClearPasswordDictBtn" Content="Очистить" FontSize="11" Click="ClearPasswordDict_Click" Padding="10,4" />
                                                             </StackPanel>
                                                             <TextBlock x:Name="PasswordDictStatusText" FontSize="10" Foreground="{StaticResource StormAccentBrush}" TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
@@ -627,7 +692,7 @@
                                         Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1">
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <FontIcon Glyph="&#xE823;" FontSize="12" Foreground="{StaticResource StormAccentBrush}" />
-                                        <TextBlock Text="Задержка" FontSize="11" FontWeight="SemiBold"
+                                        <TextBlock x:Name="DelayLabel" Text="Задержка" FontSize="11" FontWeight="SemiBold"
                                                    Foreground="{StaticResource StormTextBrush}" VerticalAlignment="Center" />
                                         <ComboBox x:Name="DelayComboBox" MinWidth="76" Height="26" FontSize="11"
                                                   Padding="8,0,0,0" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF">
@@ -647,7 +712,7 @@
                                         Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1">
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <FontIcon Glyph="&#xE8EE;" FontSize="12" Foreground="{StaticResource StormAccentBrush}" />
-                                        <TextBlock Text="Потоки" FontSize="11" FontWeight="SemiBold"
+                                        <TextBlock x:Name="ThreadsLabel" Text="Потоки" FontSize="11" FontWeight="SemiBold"
                                                    Foreground="{StaticResource StormTextBrush}" VerticalAlignment="Center" />
                                         <ComboBox x:Name="ParallelComboBox" MinWidth="54" Height="26" FontSize="11"
                                                   Padding="8,0,0,0" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF">
@@ -664,7 +729,7 @@
                                         Background="#10FFFFFF" BorderBrush="#15FFFFFF" BorderThickness="1">
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <FontIcon Glyph="&#xE72C;" FontSize="12" Foreground="{StaticResource StormAccentBrush}" />
-                                        <TextBlock Text="Повторы" FontSize="11" FontWeight="SemiBold"
+                                        <TextBlock x:Name="RetriesLabel" Text="Повторы" FontSize="11" FontWeight="SemiBold"
                                                    Foreground="{StaticResource StormTextBrush}" VerticalAlignment="Center" />
                                         <ComboBox x:Name="RetryComboBox" MinWidth="54" Height="26" FontSize="11"
                                                   Padding="8,0,0,0" CornerRadius="6" BorderThickness="0" Background="#08FFFFFF">
@@ -710,7 +775,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <FontIcon Glyph="&#xE9D5;" FontSize="14"
                                           Foreground="{StaticResource StormAccentBrush}" />
-                                <TextBlock Text="Журнал активности" FontSize="13"
+                                <TextBlock x:Name="ActivityLogHeader" Text="Журнал активности" FontSize="13"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource StormTextBrush}" />
                             </StackPanel>
@@ -729,22 +794,22 @@
                                      PlaceholderText="Поиск в журнале..." TextChanged="LogSearchBox_TextChanged" VerticalAlignment="Center" />
 
                             <!-- Export button -->
-                            <Button Grid.Column="3" Click="ExportLog_Click"
+                            <Button x:Name="ExportLogButton" Grid.Column="3" Click="ExportLog_Click"
                                     Height="28" CornerRadius="6" Padding="10,0"
                                     Margin="0,0,6,0"
-                                    BorderThickness="1" BorderBrush="#224CC9F0"
-                                    Background="#154CC9F0"
+                                    BorderThickness="1" BorderBrush="#2200D2FF"
+                                    Background="#1500D2FF"
                                     ToolTipService.ToolTip="Экспортировать журнал в TXT или CSV файл">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <FontIcon Glyph="&#xEDE1;" FontSize="11"
                                               Foreground="{StaticResource StormAccentBrush}" />
-                                    <TextBlock Text="Экспорт" FontSize="11" FontWeight="SemiBold"
+                                    <TextBlock x:Name="ExportLogBtnText" Text="Экспорт" FontSize="11" FontWeight="SemiBold"
                                                Foreground="{StaticResource StormAccentBrush}" />
                                 </StackPanel>
                             </Button>
 
                             <!-- Clear button -->
-                            <Button Grid.Column="4" Click="ClearLog_Click"
+                            <Button x:Name="ClearLogButton" Grid.Column="4" Click="ClearLog_Click"
                                     Height="28" CornerRadius="6" Padding="10,0"
                                     BorderThickness="1" BorderBrush="#22F87171"
                                     Background="#15F87171"
@@ -752,7 +817,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <FontIcon Glyph="&#xE74D;" FontSize="11"
                                               Foreground="{StaticResource StormErrorBrush}" />
-                                    <TextBlock Text="Очистить" FontSize="11" FontWeight="SemiBold"
+                                    <TextBlock x:Name="ClearLogBtnText" Text="Очистить" FontSize="11" FontWeight="SemiBold"
                                                Foreground="{StaticResource StormErrorBrush}" />
                                 </StackPanel>
                             </Button>
@@ -798,8 +863,11 @@
                             <FontIcon Glyph="&#xE9D5;" FontSize="28"
                                       Foreground="{StaticResource StormTextDimBrush}"
                                       HorizontalAlignment="Center" />
-                            <TextBlock Text="Журнал пуст" FontSize="12"
+                            <TextBlock x:Name="EmptyLogTitleText" Text="Журнал активности пуст" FontSize="13"
                                        Foreground="{StaticResource StormTextDimBrush}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock x:Name="EmptyLogSubText" Text="События мониторинга и распаковки будут отображаться здесь в реальном времени."
+                                       FontSize="11" Foreground="{StaticResource StormTextDimBrush}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
                     </Grid>
@@ -810,31 +878,35 @@
 
         <!-- ===== STATUS BAR ===== -->
         <Border Grid.Row="2" Background="{StaticResource StormSurfaceLightBrush}"
-                BorderBrush="#11FFFFFF" BorderThickness="0,1,0,0" Padding="16,0">
+                BorderBrush="#15FFFFFF" BorderThickness="0,1,0,0" Padding="16,0">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Ellipse x:Name="StatusDot" Grid.Column="0"
-                         Width="8" Height="8"
-                         Fill="{StaticResource StormTextDimBrush}"
-                         VerticalAlignment="Center" Margin="0,0,8,0" />
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Ellipse x:Name="StatusDot" Width="8" Height="8"
+                             Fill="{StaticResource StormTextDimBrush}" />
+                    <TextBlock x:Name="StatusText" Text="Готов к мониторингу" FontSize="11"
+                               Foreground="{StaticResource StormTextDimBrush}" VerticalAlignment="Center" />
+                </StackPanel>
 
-                <TextBlock x:Name="StatusText" Grid.Column="1"
-                           Text="Ожидание запуска" FontSize="11"
-                           Foreground="{StaticResource StormTextDimBrush}"
-                           VerticalAlignment="Center" />
-
-                <TextBlock Grid.Column="3"
-                           Text="100+ форматов: RAR · ZIP · 7Z · TAR · GZ · ISO · CAB · APK · ZST · и др."
-                           FontSize="10"
-                           Foreground="{StaticResource StormTextDimBrush}"
-                           VerticalAlignment="Center" Opacity="0.65" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE71C;" FontSize="11" Foreground="{StaticResource StormTextDimBrush}" />
+                        <TextBlock x:Name="EngineStatusText" Text="7-Zip Standalone Core • SharpCompress" FontSize="11"
+                                   Foreground="{StaticResource StormTextDimBrush}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE7F4;" FontSize="11" Foreground="{StaticResource StormTextDimBrush}" />
+                        <TextBlock Text="STORM TEAM" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{StaticResource StormAccentBrush}" />
+                    </StackPanel>
+                </StackPanel>
             </Grid>
         </Border>
+
     </Grid>
 </Window>

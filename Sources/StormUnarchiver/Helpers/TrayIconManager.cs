@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using System.Runtime.InteropServices;
+using StormUnarchiver.Services;
 
 namespace StormUnarchiver.Helpers;
 
@@ -42,6 +45,7 @@ public class TrayIconManager : IDisposable
     private readonly Action _onExitApp;
     private WndProcDelegate? _wndProcDelegate;
     private bool _iconAdded;
+    private TrayState _currentState = TrayState.Idle;
 
     private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
@@ -55,10 +59,7 @@ public class TrayIconManager : IDisposable
     {
         _wndProcDelegate = WndProc;
         _hIcon = CreateStormIcon();
-        _hMenu = CreatePopupMenu();
-        AppendMenuW(_hMenu, MF_STRING, IDM_SHOW, "Открыть STORM UNARCHIVER");
-        AppendMenuW(_hMenu, MF_SEPARATOR, 0, null);
-        AppendMenuW(_hMenu, MF_STRING, IDM_EXIT, "Закрыть приложение (выход)");
+        RecreateMenu();
 
         // Register window class
         var className = "StormUnarchiverTrayClass";
@@ -84,10 +85,27 @@ public class TrayIconManager : IDisposable
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             uCallbackMessage = WM_TRAYICON,
             hIcon = _hIcon,
-            szTip = "STORM UNARCHIVER 1.0.0"
+            szTip = LocalizationManager.Instance.GetString("TrayIdleStatus")
         };
         Shell_NotifyIconW(NIM_ADD, ref nid);
         _iconAdded = true;
+    }
+
+    public void RecreateMenu()
+    {
+        if (_hMenu != IntPtr.Zero)
+        {
+            DestroyMenu(_hMenu);
+            _hMenu = IntPtr.Zero;
+        }
+
+        _hMenu = CreatePopupMenu();
+        string openText = LocalizationManager.Instance.GetString("TrayOpen");
+        string exitText = LocalizationManager.Instance.GetString("TrayExit");
+
+        AppendMenuW(_hMenu, MF_STRING, IDM_SHOW, openText);
+        AppendMenuW(_hMenu, MF_SEPARATOR, 0, null);
+        AppendMenuW(_hMenu, MF_STRING, IDM_EXIT, exitText);
     }
 
     public void ShowBalloon(string title, string message)
@@ -107,19 +125,17 @@ public class TrayIconManager : IDisposable
         Shell_NotifyIconW(NIM_MODIFY, ref nid);
     }
 
-    /// <summary>
-    /// #12 — Update tray icon to reflect monitoring state (green=active, gray=idle, red=error).
-    /// </summary>
     public void SetMonitoringState(TrayState state)
     {
+        _currentState = state;
         if (!_iconAdded) return;
 
         var newIcon = CreateStormIcon(state);
         var tip = state switch
         {
-            TrayState.Active => "STORM UNARCHIVER 1.0.0 — Мониторинг...",
-            TrayState.Error => "STORM UNARCHIVER 1.0.0 — Ошибка!",
-            _ => "STORM UNARCHIVER 1.0.0 — Ожидание"
+            TrayState.Active => LocalizationManager.Instance.GetString("TrayActiveStatus"),
+            TrayState.Error => "STORM UNARCHIVER 1.0.0 — " + LocalizationManager.Instance.GetString("Errors"),
+            _ => LocalizationManager.Instance.GetString("TrayIdleStatus")
         };
 
         var nid = new NOTIFYICONDATA
@@ -133,9 +149,14 @@ public class TrayIconManager : IDisposable
         };
         Shell_NotifyIconW(NIM_MODIFY, ref nid);
 
-        // Free old icon, keep new
         if (_hIcon != IntPtr.Zero) DestroyIcon(_hIcon);
         _hIcon = newIcon;
+    }
+
+    public void UpdateLocalization()
+    {
+        RecreateMenu();
+        SetMonitoringState(_currentState);
     }
 
     private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
@@ -186,7 +207,10 @@ public class TrayIconManager : IDisposable
                 if (hIcon != IntPtr.Zero) return hIcon;
             }
 
-            var appIcoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+            var appIcoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+            if (!File.Exists(appIcoPath))
+                appIcoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+
             if (File.Exists(appIcoPath))
             {
                 IntPtr hIcon = LoadImageW(IntPtr.Zero, appIcoPath, IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
@@ -256,12 +280,11 @@ public class TrayIconManager : IDisposable
 
     private static bool IsLightningPixel(int x, int y, int size)
     {
-        // Simple lightning bolt shape
-        if (y >= 1 && y <= 3 && x >= 6 && x <= 10) return true;   // top
-        if (y >= 4 && y <= 6 && x >= 5 && x <= 9) return true;    // upper-mid
-        if (y >= 7 && y <= 8 && x >= 4 && x <= 11) return true;   // wide middle bar
-        if (y >= 9 && y <= 11 && x >= 6 && x <= 10) return true;  // lower-mid
-        if (y >= 12 && y <= 14 && x >= 7 && x <= 9) return true;  // bottom
+        if (y >= 1 && y <= 3 && x >= 6 && x <= 10) return true;
+        if (y >= 4 && y <= 6 && x >= 5 && x <= 9) return true;
+        if (y >= 7 && y <= 8 && x >= 4 && x <= 11) return true;
+        if (y >= 9 && y <= 11 && x >= 6 && x <= 10) return true;
+        if (y >= 12 && y <= 14 && x >= 7 && x <= 9) return true;
         return false;
     }
 
@@ -297,8 +320,6 @@ public class TrayIconManager : IDisposable
             _hWnd = IntPtr.Zero;
         }
     }
-
-    // ===== P/Invoke Declarations =====
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct NOTIFYICONDATA

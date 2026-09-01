@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
+using StormUnarchiver.Services;
 
 namespace StormUnarchiver.Models;
 
@@ -13,19 +17,19 @@ public class AppSettings
     public bool ShowNotifications { get; set; } = true;
     public int ProcessingDelaySec { get; set; } = 2;
 
-    // #2 — Archive password (global)
+    // Archive password (global)
     public string ArchivePassword { get; set; } = "";
 
-    // #3 — Extension filter (comma-separated, e.g. ".rar,.zip")
+    // Extension filter (comma-separated, e.g. ".rar,.zip")
     public string ExtensionFilter { get; set; } = "";
 
-    // #4 — Exclude mask (comma-separated, e.g. "*_part*,*.tmp")
+    // Exclude mask (comma-separated, e.g. "*_part*,*.tmp")
     public string ExcludeMask { get; set; } = "";
 
-    // #17 — Max parallel extractions
+    // Max parallel extractions
     public int MaxParallelExtractions { get; set; } = 1;
 
-    // #18 — Retry count on failure
+    // Retry count on failure
     public int RetryCount { get; set; } = 3;
     public int RetryDelaySec { get; set; } = 5;
 
@@ -42,7 +46,15 @@ public class AppSettings
     public bool LowPriorityMode { get; set; } = false;
     public int ExtractionThrottleMs { get; set; } = 0;
 
+    // STORM Soft Theme and Localization
+    public ThemeType SelectedTheme { get; set; } = ThemeType.StormDark;
+    public string SelectedLanguage { get; set; } = "ru";
+
     private static readonly string SettingsPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "StormUnarchiver", "settings.json");
+
+    private static readonly string LegacySettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "StormUnarchiver", "settings.json");
 
@@ -50,6 +62,18 @@ public class AppSettings
     {
         try
         {
+            // Migrate legacy settings if found
+            if (!File.Exists(SettingsPath) && File.Exists(LegacySettingsPath))
+            {
+                var legacyJson = File.ReadAllText(LegacySettingsPath);
+                var migrated = JsonSerializer.Deserialize<AppSettings>(legacyJson);
+                if (migrated != null)
+                {
+                    migrated.Save();
+                    return migrated;
+                }
+            }
+
             if (File.Exists(SettingsPath))
             {
                 var json = File.ReadAllText(SettingsPath);
